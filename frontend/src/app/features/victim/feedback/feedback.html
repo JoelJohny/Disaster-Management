@@ -1,0 +1,69 @@
+<!-- 
+  This is a professional and empathetic page for a victim to provide feedback.
+
+  Features:
+  - A clear reference to the specific help request being reviewed.
+  - An interactive star rating system for an intuitive experience.
+  - A structured form with a text area for detailed comments and optional contact permission.
+  - A clean, focused, and responsive design.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">Provide Feedback</h1>
+    <p class="text-gray-500">Your feedback is important and helps us improve our support system.</p>
+  </div>
+
+  <!-- Feedback Form Card -->
+  <div class="bg-white p-6 md:p-8 rounded-lg shadow-md">
+    <div class="border-b pb-4 mb-6">
+      <p class="text-sm text-gray-600">You are providing feedback for request:</p>
+      <p class="font-semibold text-lg text-blue-700">REQ-2024-B12 (Food & Water)</p>
+    </div>
+
+    <form action="#" class="space-y-6">
+      <!-- Star Rating -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">How would you rate the support you received?</label>
+        <div class="flex items-center space-x-2">
+          <button 
+            *ngFor="let star of [1, 2, 3, 4, 5]" 
+            type="button" 
+            (click)="setRating(star)"
+            (mouseover)="hoverRating = star"
+            (mouseleave)="hoverRating = 0"
+            class="text-3xl transition-colors"
+            [ngClass]="(hoverRating || rating) >= star ? 'text-yellow-400' : 'text-gray-300'"
+          >
+            <fa-icon [icon]="faStar"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detailed Feedback -->
+      <div>
+        <label for="comments" class="block text-sm font-medium text-gray-700">Additional Comments</label>
+        <div class="mt-1">
+          <textarea id="comments" name="comments" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Please share any details about your experience. What went well? What could be improved?"></textarea>
+        </div>
+      </div>
+      
+      <!-- Contact Permission -->
+      <div class="flex items-start">
+        <div class="flex items-center h-5">
+          <input id="contact-permission" name="contact-permission" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+        </div>
+        <div class="ml-3 text-sm">
+          <label for="contact-permission" class="text-gray-700">A volunteer or admin may contact me about this feedback.</label>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="pt-4 flex justify-end">
+        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+          Submit Feedback
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

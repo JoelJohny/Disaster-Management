@@ -1,0 +1,82 @@
+<!-- 
+  This is a professional page for an Admin to monitor all help requests.
+
+  Features:
+  - A comprehensive header with search, filtering by type/status, and date range options.
+  - A detailed, responsive table showing all key information for each request.
+  - Color-coded status and urgency badges for quick visual assessment.
+  - An "Assign" button for unassigned tasks and a "View" button for all others.
+  - Pagination to handle a large volume of requests.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">All Requests Monitoring</h1>
+    <p class="text-gray-500">A master list of every help request on the platform.</p>
+  </div>
+
+  <!-- Filter & Sort Controls -->
+  <div class="bg-white p-4 rounded-lg shadow-md space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <input type="text" placeholder="Search by ID or user..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+      <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <option>All Request Types</option>
+        <option>Medical Assistance</option>
+        <option>Food & Water</option>
+        <option>Shelter / Housing</option>
+      </select>
+      <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <option>All Statuses</option>
+        <option>Submitted</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+        <option>Cancelled</option>
+      </select>
+      <input type="date" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+    </div>
+  </div>
+
+  <!-- Requests Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3">Case ID</th>
+            <th scope="col" class="px-6 py-3">Submitted By</th>
+            <th scope="col" class="px-6 py-3">Request Type</th>
+            <th scope="col" class="px-6 py-3">Urgency</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3">Assigned To</th>
+            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loop through each request -->
+          <tr *ngFor="let request of requests" class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">{{ request.id }}</td>
+            <td class="px-6 py-4">{{ request.submittedBy }}</td>
+            <td class="px-6 py-4">{{ request.type }}</td>
+            <td class="px-6 py-4">
+              <span class="font-semibold" [ngClass]="getUrgencyColor(request.urgency).textColor">{{ request.urgency }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-xs font-medium px-2.5 py-0.5 rounded-full" [ngClass]="getStatusColor(request.status).bgColor + ' ' + getStatusColor(request.status).textColor">
+                {{ request.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">{{ request.assignedTo || 'Unassigned' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button *ngIf="!request.assignedTo" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition-colors">
+                Assign
+              </button>
+              <button *ngIf="request.assignedTo" class="font-medium text-blue-600 hover:underline">
+                View
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

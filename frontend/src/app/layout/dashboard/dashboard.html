@@ -1,3 +1,159 @@
-<h1 class="text-3xl font-bold underline">
-  Hello world!
-</h1>
+<!-- 
+  This is a revised, more professional Admin Dashboard.
+
+  Improvements:
+  - A more dynamic multi-column grid layout.
+  - Stat cards now include trend indicators (% change) for better context.
+  - A new "Quick Actions" panel for common administrative tasks.
+  - A "System Status" panel to monitor service health at a glance.
+  - Refined styling, including user avatars in the activity feed, for a polished, modern look.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800">Admin Dashboard</h1>
+      <p class="text-gray-500">System overview and real-time activity.</p>
+    </div>
+    <div class="mt-4 md:mt-0">
+      <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+        <fa-icon [icon]="faPlusCircle" class="mr-2"></fa-icon>
+        Create New Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Stat Cards Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Card 1: Total Users -->
+    <div class="bg-white p-5 rounded-lg shadow-md">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-gray-500">Total Users</p>
+        <div class="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
+          <fa-icon [icon]="faUsers" class="text-blue-500 text-lg"></fa-icon>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-gray-800 mt-2">{{ totalUsers }}</p>
+      <p class="text-xs text-green-500 flex items-center mt-1">
+        <fa-icon [icon]="faArrowUp" class="mr-1"></fa-icon>
+        +1.5% this week
+      </p>
+    </div>
+    <!-- Card 2: Active Requests -->
+    <div class="bg-white p-5 rounded-lg shadow-md">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-gray-500">Active Requests</p>
+        <div class="w-10 h-10 flex items-center justify-center bg-yellow-100 rounded-full">
+          <fa-icon [icon]="faClipboardList" class="text-yellow-500 text-lg"></fa-icon>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-gray-800 mt-2">{{ activeRequests }}</p>
+      <p class="text-xs text-red-500 flex items-center mt-1">
+        <fa-icon [icon]="faArrowDown" class="mr-1"></fa-icon>
+        -3.2% this week
+      </p>
+    </div>
+    <!-- Card 3: Volunteers Online -->
+    <div class="bg-white p-5 rounded-lg shadow-md">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-gray-500">Volunteers Online</p>
+        <div class="w-10 h-10 flex items-center justify-center bg-green-100 rounded-full">
+          <fa-icon [icon]="faUserShield" class="text-green-500 text-lg"></fa-icon>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-gray-800 mt-2">{{ volunteersOnline }}</p>
+      <p class="text-xs text-gray-500 flex items-center mt-1">
+        Live count
+      </p>
+    </div>
+    <!-- Card 4: Resolved Today -->
+    <div class="bg-white p-5 rounded-lg shadow-md">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium text-gray-500">Resolved Today</p>
+        <div class="w-10 h-10 flex items-center justify-center bg-indigo-100 rounded-full">
+          <fa-icon [icon]="faCheckCircle" class="text-indigo-500 text-lg"></fa-icon>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-gray-800 mt-2">{{ resolvedToday }}</p>
+      <p class="text-xs text-green-500 flex items-center mt-1">
+        <fa-icon [icon]="faArrowUp" class="mr-1"></fa-icon>
+        +5 vs yesterday
+      </p>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Chart & Activity -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white p-5 rounded-lg shadow-md">
+        <h3 class="font-semibold text-gray-700 mb-4">Requests Trend (Last 7 Days)</h3>
+        <div class="h-80 bg-gray-100 flex items-center justify-center rounded-md">
+          <p class="text-gray-400">[Line Chart Placeholder]</p>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-lg shadow-md">
+        <h3 class="font-semibold text-gray-700 mb-4">Recent System Activity</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <tbody>
+              <tr *ngFor="let activity of recentActivity" class="border-b">
+                <td class="px-4 py-3 flex items-center">
+                  <img [src]="activity.avatar" class="w-8 h-8 rounded-full mr-3">
+                  <div>
+                    <p class="font-medium text-gray-800">{{ activity.user }}</p>
+                    <p class="text-xs text-gray-500">{{ activity.role }}</p>
+                  </div>
+                </td>
+                <td class="px-4 py-3">{{ activity.action }}</td>
+                <td class="px-4 py-3 text-gray-400">{{ activity.time }}</td>
+                <td class="px-4 py-3"><a href="{{ activity.link }}" class="font-medium text-blue-600 hover:underline">Details</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Quick Actions & System Status -->
+    <div class="space-y-6">
+      <div class="bg-white p-5 rounded-lg shadow-md">
+        <h3 class="font-semibold text-gray-700 mb-4">Quick Actions</h3>
+        <div class="space-y-3">
+          <button class="w-full flex items-center text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+            <fa-icon [icon]="faUserCog" class="mr-3 text-gray-500"></fa-icon> Manage Users
+          </button>
+          <button class="w-full flex items-center text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+            <fa-icon [icon]="faListAlt" class="mr-3 text-gray-500"></fa-icon> View All Requests
+          </button>
+          <button class="w-full flex items-center text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+            <fa-icon [icon]="faFileExport" class="mr-3 text-gray-500"></fa-icon> Export Data
+          </button>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-lg shadow-md">
+        <h3 class="font-semibold text-gray-700 mb-4">System Status</h3>
+        <ul class="space-y-3">
+          <li class="flex items-center justify-between">
+            <span class="text-gray-600">API Service</span>
+            <span class="flex items-center text-green-600 font-semibold text-sm">
+              <span class="h-2 w-2 bg-green-500 rounded-full mr-2"></span> Operational
+            </span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span class="text-gray-600">Database</span>
+            <span class="flex items-center text-green-600 font-semibold text-sm">
+              <span class="h-2 w-2 bg-green-500 rounded-full mr-2"></span> Operational
+            </span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span class="text-gray-600">Email Service</span>
+            <span class="flex items-center text-yellow-600 font-semibold text-sm">
+              <span class="h-2 w-2 bg-yellow-500 rounded-full mr-2"></span> Degraded
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

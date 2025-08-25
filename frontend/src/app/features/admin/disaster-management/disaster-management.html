@@ -1,0 +1,64 @@
+<!-- 
+  This is a professional page for an Admin to manage disaster events.
+
+  Features:
+  - A clear header with a prominent "Create New Event" button.
+  - A responsive table displaying key event details like name, location, status, and dates.
+  - Color-coded status badges for quick identification of active, upcoming, or past events.
+  - Action buttons for editing or viewing the details of each event.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800">Disaster Event Management</h1>
+      <p class="text-gray-500">Define and manage disaster events to organize relief efforts.</p>
+    </div>
+    <div class="mt-4 md:mt-0">
+      <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+        <fa-icon [icon]="faPlusCircle" class="mr-2"></fa-icon>
+        Create New Event
+      </button>
+    </div>
+  </div>
+
+  <!-- Events Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3">Event Name</th>
+            <th scope="col" class="px-6 py-3">Location</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3">Start Date</th>
+            <th scope="col" class="px-6 py-3">End Date</th>
+            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loop through each event -->
+          <tr *ngFor="let event of disasterEvents" class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4 font-medium text-gray-900">{{ event.name }}</td>
+            <td class="px-6 py-4">{{ event.location }}</td>
+            <td class="px-6 py-4">
+              <span class="text-xs font-medium px-2.5 py-0.5 rounded-full" [ngClass]="getStatusColor(event.status).bgColor + ' ' + getStatusColor(event.status).textColor">
+                {{ event.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">{{ event.startDate }}</td>
+            <td class="px-6 py-4">{{ event.endDate || 'Ongoing' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button class="p-2 text-gray-500 hover:text-blue-600" title="Edit Event">
+                <fa-icon [icon]="faPencilAlt"></fa-icon>
+              </button>
+              <button class="p-2 text-gray-500 hover:text-gray-800" title="View Details">
+                <fa-icon [icon]="faEye"></fa-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

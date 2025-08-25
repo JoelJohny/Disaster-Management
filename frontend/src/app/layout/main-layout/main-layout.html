@@ -1,13 +1,37 @@
-<div class="app-layout">
-  <app-header></app-header>
-  <div class="main-container">
-    <app-sidebar 
-  [isCollapsed]="isSidebarCollapsed"
-  (toggleSidebar)="onToggleSidebar()">
-</app-sidebar>
-    <div class="content ">
-      <router-outlet></router-outlet>
-    </div> 
+<!-- 
+  The main layout now includes a backdrop for the mobile overlay menu
+  and passes the responsive state down to the child components.
+-->
+<div class="flex h-screen bg-gray-100 relative">
+  <!-- Sidebar -->
+  <app-sidebar 
+    [isVisible]="isSidebarVisible" 
+    [isMobile]="isMobile"
+    (toggle)="toggleSidebar()">
+  </app-sidebar>
+
+  <!-- Backdrop Overlay for Mobile -->
+  <div 
+    *ngIf="isMobile && isSidebarVisible" 
+    (click)="toggleSidebar()" 
+    class="fixed inset-0 bg-black opacity-50 z-30 md:hidden">
   </div>
-  <app-footer></app-footer>
+
+  <!-- Main Content Area -->
+  <div 
+    class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
+    [class.ml-64]="isSidebarVisible && !isMobile"
+    [class.ml-20]="!isSidebarVisible && !isMobile"
+  >
+    <!-- Header -->
+    <app-header [isMobile]="isMobile" (menuToggle)="toggleSidebar()"></app-header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Footer -->
+    <app-footer></app-footer>
+  </div>
 </div>

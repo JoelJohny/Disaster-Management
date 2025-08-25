@@ -1,0 +1,72 @@
+<!-- 
+  This is a revised, professional page for a victim to track their help requests.
+
+  Improvements:
+  - Added filter buttons to allow users to view requests by status.
+  - Implemented pagination to handle a large number of requests gracefully.
+  - The layout is now a more scalable card-based grid instead of a timeline.
+  - The component is now fully equipped to handle many requests without cluttering the UI.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">My Requests Status</h1>
+    <p class="text-gray-500">Track the progress of your submitted help requests below.</p>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="bg-white p-4 rounded-lg shadow-md flex flex-wrap items-center gap-2">
+    <span class="text-sm font-medium text-gray-700 mr-2">Filter by status:</span>
+    <button (click)="setFilter('All')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'All', 'bg-gray-200 text-gray-700': currentFilter !== 'All'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">All</button>
+    <button (click)="setFilter('Submitted')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Submitted', 'bg-gray-200 text-gray-700': currentFilter !== 'Submitted'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Submitted</button>
+    <button (click)="setFilter('In Progress')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'In Progress', 'bg-gray-200 text-gray-700': currentFilter !== 'In Progress'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">In Progress</button>
+    <button (click)="setFilter('Completed')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Completed', 'bg-gray-200 text-gray-700': currentFilter !== 'Completed'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Completed</button>
+    <button (click)="setFilter('Cancelled')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Cancelled', 'bg-gray-200 text-gray-700': currentFilter !== 'Cancelled'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Cancelled</button>
+  </div>
+
+  <!-- Requests List -->
+  <div *ngIf="paginatedRequests.length > 0; else noRequests" class="space-y-4">
+    <!-- Loop through each request on the current page -->
+    <div *ngFor="let request of paginatedRequests" class="bg-white p-4 rounded-lg shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between transition-shadow hover:shadow-lg">
+      <div class="flex items-center mb-4 sm:mb-0">
+        <div class="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full text-white" [ngClass]="request.iconBgColor">
+          <fa-icon [icon]="request.icon" class="text-xl"></fa-icon>
+        </div>
+        <div class="ml-4">
+          <p class="font-semibold text-gray-800">{{ request.type }}</p>
+          <p class="text-xs text-gray-500">ID: {{ request.id }} &bull; Submitted: {{ request.date }}</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4 w-full sm:w-auto">
+        <span class="text-xs font-medium px-3 py-1 rounded-full" [ngClass]="getStatusColor(request.status)">
+          {{ request.status }}
+        </span>
+        <button class="text-sm bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+          View Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div *ngIf="totalPages > 1" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
+    <button (click)="previousPage()" [disabled]="currentPage === 1" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+      Previous
+    </button>
+    <span class="text-sm text-gray-600">
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+      Next
+    </button>
+  </div>
+
+  <!-- Template for when there are no requests (or no matching filters) -->
+  <ng-template #noRequests>
+    <div class="bg-white p-8 rounded-lg shadow-md text-center">
+      <fa-icon [icon]="faFolderOpen" class="text-gray-300 text-5xl mb-4"></fa-icon>
+      <h3 class="text-xl font-semibold text-gray-700">No Requests Found</h3>
+      <p class="text-gray-500 mt-2">There are no requests matching your current filter.</p>
+    </div>
+  </ng-template>
+</div>

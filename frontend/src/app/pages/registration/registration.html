@@ -1,0 +1,109 @@
+<!-- 
+  This is a professional, responsive user registration page component.
+
+  Features:
+  - A two-panel layout consistent with the login page.
+  - Input fields for first name, last name, email, and password confirmation.
+  - A checkbox for agreeing to the Terms of Service.
+  - A clear call-to-action to create an account.
+  - A link for existing users to navigate back to the login page.
+-->
+<div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-xl shadow-2xl overflow-hidden">
+    
+    <!-- Left Panel: Branding & Welcome Message -->
+    <div class="w-full md:w-1/2 bg-blue-600 text-white p-12 flex flex-col justify-center items-center text-center">
+      <h1 class="text-4xl font-bold mb-3">Create Account</h1>
+      <p class="mb-8">Join our community to get the support you need or to offer your help as a volunteer.</p>
+      <div class="w-32 h-1 bg-blue-400 rounded-full"></div>
+    </div>
+
+    <!-- Right Panel: Registration Form -->
+    <div class="w-full md:w-1/2 p-8 md:p-12">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">Sign Up</h2>
+      <p class="text-gray-500 mb-8">Create your account to get started.</p>
+
+      <form action="#" class="space-y-6">
+        <!-- Name Inputs -->
+        <div class="flex flex-col sm:flex-row sm:space-x-4">
+          <div class="w-full sm:w-1/2">
+            <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+            <div class="mt-1 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <fa-icon [icon]="faUser"></fa-icon>
+              </div>
+              <input type="text" id="firstName" name="firstName" placeholder="John" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <div class="w-full sm:w-1/2 mt-6 sm:mt-0">
+            <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+            <div class="mt-1 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <fa-icon [icon]="faUser"></fa-icon>
+              </div>
+              <input type="text" id="lastName" name="lastName" placeholder="Doe" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Input -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+          <div class="mt-1 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <fa-icon [icon]="faEnvelope"></fa-icon>
+            </div>
+            <input type="email" id="email" name="email" placeholder="you@example.com" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <div class="mt-1 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <fa-icon [icon]="faLock"></fa-icon>
+            </div>
+            <input type="password" id="password" name="password" placeholder="Create a password" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        
+        <!-- Confirm Password Input -->
+        <div>
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+          <div class="mt-1 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <fa-icon [icon]="faLock"></fa-icon>
+            </div>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <!-- Terms Agreement -->
+        <div class="flex items-start">
+          <div class="flex items-center h-5">
+            <input id="terms" name="terms" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+          </div>
+          <div class="ml-3 text-sm">
+            <label for="terms" class="text-gray-700">I agree to the <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Terms and Conditions</a></label>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+          <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Create Account
+          </button>
+        </div>
+      </form>
+
+      <!-- Login Link -->
+      <p class="mt-8 text-center text-sm text-gray-600">
+        Already have an account?
+        <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+          Sign in
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

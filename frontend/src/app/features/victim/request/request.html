@@ -1,0 +1,122 @@
+<!-- 
+  This is a revised, professional multi-step form for submitting a help request.
+
+  Improvements:
+  - A multi-step process to guide the user through the form.
+  - A visual stepper/progress bar to show progress.
+  - Clear "Next" and "Previous" buttons for navigation.
+  - Enhanced styling and visual hierarchy for a more polished and professional feel.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">Submit a Help Request</h1>
+    <p class="text-gray-500">Please provide as much detail as possible so we can assist you effectively.</p>
+  </div>
+
+  <!-- Help Request Form Card -->
+  <div class="bg-white p-6 md:p-8 rounded-lg shadow-md">
+    <!-- Stepper / Progress Bar -->
+    <div class="mb-8">
+      <div class="flex items-center">
+        <!-- Step 1 -->
+        <div class="flex items-center text-blue-600 relative">
+          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 border-blue-600 flex items-center justify-center">
+            <fa-icon [icon]="faClipboardList" class="text-xl"></fa-icon>
+          </div>
+          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase text-blue-600">Details</div>
+        </div>
+        <div class="flex-auto border-t-2 transition duration-500 ease-in-out" [class.border-blue-600]="currentStep > 1" [class.border-gray-300]="currentStep <= 1"></div>
+        
+        <!-- Step 2 -->
+        <div class="flex items-center relative" [class.text-blue-600]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">
+          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 flex items-center justify-center" [class.border-blue-600]="currentStep >= 2" [class.border-gray-300]="currentStep < 2">
+            <fa-icon [icon]="faMapMarkerAlt" class="text-xl"></fa-icon>
+          </div>
+          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase" [class.text-blue-600]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">Location</div>
+        </div>
+        <div class="flex-auto border-t-2 transition duration-500 ease-in-out" [class.border-blue-600]="currentStep > 2" [class.border-gray-300]="currentStep <= 2"></div>
+
+        <!-- Step 3 -->
+        <div class="flex items-center relative" [class.text-blue-600]="currentStep >= 3" [class.text-gray-500]="currentStep < 3">
+          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 flex items-center justify-center" [class.border-blue-600]="currentStep >= 3" [class.border-gray-300]="currentStep < 3">
+            <fa-icon [icon]="faCommentDots" class="text-xl"></fa-icon>
+          </div>
+          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase" [class.text-blue-600]="currentStep >= 3" [class.text-gray-500]="currentStep < 3">Description</div>
+        </div>
+      </div>
+    </div>
+
+    <form action="#" class="space-y-6">
+      <!-- Step 1: Request Details -->
+      <div *ngIf="currentStep === 1">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Request Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="requestType" class="block text-sm font-medium text-gray-700">Type of Assistance Needed</label>
+            <select id="requestType" name="requestType" class="mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+              <option selected disabled>-- Please select an option --</option>
+              <option>Medical Assistance</option>
+              <option>Food & Water</option>
+              <option>Shelter / Housing</option>
+              <option>Rescue / Evacuation</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="urgency" class="block text-sm font-medium text-gray-700">Urgency Level</label>
+            <select id="urgency" name="urgency" class="mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+              <option>Low</option>
+              <option>Medium</option>
+              <option selected>High</option>
+              <option>Critical</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Location & People -->
+      <div *ngIf="currentStep === 2">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Location & People</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="location" class="block text-sm font-medium text-gray-700">Location (Address or Landmark)</label>
+            <input type="text" id="location" name="location" placeholder="e.g., 123 Main St or near City Park" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="peopleCount" class="block text-sm font-medium text-gray-700">Number of People Needing Help</label>
+            <input type="number" id="peopleCount" name="peopleCount" min="1" placeholder="1" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Description & Contact -->
+      <div *ngIf="currentStep === 3">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Description & Contact</h3>
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700">Detailed Description</label>
+          <textarea id="description" name="description" rows="5" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Please describe your situation. For medical requests, mention symptoms. For rescue, describe the environment."></textarea>
+        </div>
+        <div class="mt-6">
+          <label for="contact" class="block text-sm font-medium text-gray-700">Safe Contact Number or Email (Optional)</label>
+          <input type="text" id="contact" name="contact" placeholder="A safe way for us to contact you" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="pt-4 flex justify-between">
+        <button type="button" *ngIf="currentStep > 1" (click)="previousStep()" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">
+          Previous
+        </button>
+        <div *ngIf="currentStep === 1"></div> <!-- Spacer -->
+
+        <button type="button" *ngIf="currentStep < 3" (click)="nextStep()" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+          Next
+        </button>
+        <button type="submit" *ngIf="currentStep === 3" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+          Submit Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

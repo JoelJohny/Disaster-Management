@@ -1,0 +1,68 @@
+<!-- 
+  This is a revised, professional page for volunteers to view their assigned tasks.
+
+  Improvements:
+  - A modern, card-based grid layout that is more visually appealing and responsive.
+  - Each card includes more detailed information, such as the date accepted and number of people.
+  - A visual progress bar on each card to show the task's status.
+  - Clearer action buttons for managing each task.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">My Assigned Tasks</h1>
+    <p class="text-gray-500">These are the help requests you have committed to. Thank you for your help!</p>
+  </div>
+
+  <!-- Assigned Tasks Grid -->
+  <div *ngIf="assignedRequests.length > 0; else noTasks" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <!-- Loop through each assigned request -->
+    <div *ngFor="let request of assignedRequests" class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+      <div class="p-5 flex-grow">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs text-gray-500">Accepted on {{ request.dateAccepted }}</p>
+            <h3 class="text-lg font-semibold text-gray-800 mt-1">{{ request.type }}</h3>
+            <p class="text-sm text-gray-600">{{ request.location }}</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full flex-shrink-0" [ngClass]="getUrgencyColor(request.urgency).bgColor + ' ' + getUrgencyColor(request.urgency).textColor">
+            {{ request.urgency }}
+          </span>
+        </div>
+        <div class="mt-4 flex items-center text-sm text-gray-500">
+          <fa-icon [icon]="faUsers" class="mr-2"></fa-icon>
+          <span>{{ request.peopleCount }} people</span>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="mt-4">
+          <div class="flex justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">{{ request.status }}</span>
+            <span class="text-sm font-medium text-gray-700">{{ request.progress }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-blue-600 h-2.5 rounded-full" [style.width.%]="request.progress"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Card Actions -->
+      <div class="bg-gray-50 px-5 py-3 flex items-center justify-end space-x-3">
+        <button class="font-medium text-gray-600 hover:text-gray-900 text-sm">Update Status</button>
+        <button class="font-medium bg-blue-600 text-white hover:bg-blue-700 text-sm px-4 py-2 rounded-lg">View Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template for when there are no assigned tasks -->
+  <ng-template #noTasks>
+    <div class="bg-white p-8 rounded-lg shadow-md text-center">
+      <fa-icon [icon]="faTasks" class="text-gray-300 text-5xl mb-4"></fa-icon>
+      <h3 class="text-xl font-semibold text-gray-700">No Assigned Tasks</h3>
+      <p class="text-gray-500 mt-2">You have no active assignments. Accept a new request to get started!</p>
+      <button class="mt-4 bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-colors">
+        Find Available Requests
+      </button>
+    </div>
+  </ng-template>
+</div>

@@ -5,7 +5,7 @@
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
-
+@use "tailwindcss";
 html {
   @include mat.theme((
     color: (
@@ -37,4 +37,4 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-@import "tailwindcss";
+

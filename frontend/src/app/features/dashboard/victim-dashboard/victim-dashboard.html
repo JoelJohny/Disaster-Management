@@ -1,0 +1,91 @@
+<!-- 
+  This is a professional and empathetic dashboard for a victim user.
+
+  Features:
+  - A reassuring and personalized welcome message.
+  - Quick-action cards for critical functions like reporting incidents and finding support.
+  - A section for important notifications or case updates.
+  - A resource section with safety tips.
+  - A clean, card-based, and fully responsive design.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">Welcome, Jane</h1>
+    <p class="text-gray-500">We're here to support you. You are not alone.</p>
+  </div>
+
+  <!-- Quick Action Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Card 1: Report an Incident -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center hover:shadow-lg transition-shadow">
+      <div class="w-16 h-16 flex items-center justify-center bg-red-100 rounded-full mb-4">
+        <fa-icon [icon]="faBullhorn" class="text-red-500 text-2xl"></fa-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800">Report an Incident</h3>
+      <p class="text-sm text-gray-500 mt-2">Safely and confidentially report a new incident. Your report can help us take action.</p>
+      <button class="mt-4 w-full bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">
+        File a Report
+      </button>
+    </div>
+    <!-- Card 2: Find Support -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center hover:shadow-lg transition-shadow">
+      <div class="w-16 h-16 flex items-center justify-center bg-green-100 rounded-full mb-4">
+        <fa-icon [icon]="faHandsHelping" class="text-green-500 text-2xl"></fa-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800">Find Support</h3>
+      <p class="text-sm text-gray-500 mt-2">Connect with volunteers, counselors, and support groups in your area.</p>
+      <button class="mt-4 w-full bg-green-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+        Get Help
+      </button>
+    </div>
+    <!-- Card 3: My Cases -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center hover:shadow-lg transition-shadow">
+      <div class="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full mb-4">
+        <fa-icon [icon]="faFolderOpen" class="text-blue-500 text-2xl"></fa-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800">My Cases</h3>
+      <p class="text-sm text-gray-500 mt-2">View the status and updates on your reported incidents and support requests.</p>
+      <button class="mt-4 w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+        View My Cases
+      </button>
+    </div>
+  </div>
+
+  <!-- Notifications & Updates -->
+  <div class="bg-white p-5 rounded-lg shadow-md">
+    <h3 class="font-semibold text-gray-700 mb-4 flex items-center">
+      <fa-icon [icon]="faBell" class="mr-3 text-yellow-500"></fa-icon>
+      Important Updates
+    </h3>
+    <div class="divide-y">
+      <div class="py-3 flex justify-between items-center">
+        <div>
+          <p class="font-medium text-gray-800">Update on Case #2024-A58</p>
+          <p class="text-sm text-gray-500">A volunteer has been assigned to your case.</p>
+        </div>
+        <a href="#" class="text-sm text-blue-600 hover:underline">View Details</a>
+      </div>
+      <div class="py-3 flex justify-between items-center">
+        <div>
+          <p class="font-medium text-gray-800">Upcoming Support Group Meeting</p>
+          <p class="text-sm text-gray-500">Tomorrow at 6:00 PM - Community Center</p>
+        </div>
+        <a href="#" class="text-sm text-blue-600 hover:underline">RSVP</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety Resources -->
+  <div class="bg-white p-5 rounded-lg shadow-md">
+    <h3 class="font-semibold text-gray-700 mb-4 flex items-center">
+      <fa-icon [icon]="faShieldAlt" class="mr-3 text-indigo-500"></fa-icon>
+      Safety Resources
+    </h3>
+    <ul class="space-y-2 text-sm">
+      <li><a href="#" class="text-blue-600 hover:underline">How to Create a Safety Plan</a></li>
+      <li><a href="#" class="text-blue-600 hover:underline">Understanding Your Rights</a></li>
+      <li><a href="#" class="text-blue-600 hover:underline">Local Shelters and Hotlines</a></li>
+    </ul>
+  </div>
+</div>

@@ -1,1 +1,71 @@
-<p>header works!</p>
+<!-- 
+  The header now contains a hamburger menu button that is only visible on mobile.
+  The search bar is hidden on mobile to save space.
+-->
+<header class="bg-white shadow-md px-4 sm:px-6 py-3 flex items-center justify-between z-20 relative">
+  <!-- Left side: Hamburger Menu (Mobile Only) -->
+  <div class="flex items-center">
+    <button *ngIf="isMobile" (click)="onMenuClick()" class="p-2 text-gray-600 hover:text-gray-800">
+      <fa-icon [icon]="faBars" class="w-6 h-6"></fa-icon>
+    </button>
+  </div>
+
+  <!-- Right side: Icons and User Menu -->
+  <div class="flex items-center space-x-2 sm:space-x-5">
+    <div class="relative hidden md:block">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+        <fa-icon [icon]="faSearch"></fa-icon>
+      </div>
+      <input type="text" placeholder="Search..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-gray-50">
+    </div>
+
+    <div class="relative">
+      <button (click)="toggleNotifications()" class="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors">
+        <fa-icon [icon]="faBell"></fa-icon>
+        <span class="absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+      </button>
+      <div *ngIf="isNotificationsOpen" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl overflow-hidden z-50">
+        <div class="py-2 px-4 font-bold text-gray-700 border-b">Notifications</div>
+        <div class="divide-y">
+          <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
+            <div class="w-10 h-10 flex-shrink-0 rounded-full bg-blue-500 text-white flex items-center justify-center">
+              <fa-icon [icon]="faUserPlus"></fa-icon>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-800">New user registered</p>
+              <p class="text-xs text-gray-500">5 minutes ago</p>
+            </div>
+          </a>
+          <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
+            <div class="w-10 h-10 flex-shrink-0 rounded-full bg-green-500 text-white flex items-center justify-center">
+              <fa-icon [icon]="faServer"></fa-icon>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-800">Server reboot complete</p>
+              <p class="text-xs text-gray-500">30 minutes ago</p>
+            </div>
+          </a>
+        </div>
+        <a href="#" class="block bg-gray-50 text-center text-sm font-medium text-blue-600 py-2 hover:bg-gray-100">View all notifications</a>
+      </div>
+    </div>
+
+    <div class="relative">
+      <button (click)="toggleUserMenu()" class="flex items-center space-x-2">
+        <img src="https://placehold.co/32x32/6366f1/white?text=JD" alt="User Avatar" class="w-9 h-9 rounded-full ring-2 ring-offset-2 ring-gray-200">
+      </button>
+      <div *ngIf="isUserMenuOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl z-50 py-1">
+        <div class="px-4 py-2 border-b">
+          <p class="text-sm font-semibold text-gray-800">John Doe</p>
+          <p class="text-xs text-gray-500">Administrator</p>
+        </div>
+        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
+        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+        <a href="#" class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+          <fa-icon [icon]="faSignOutAlt" class="mr-2"></fa-icon>
+          Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</header>

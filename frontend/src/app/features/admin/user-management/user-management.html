@@ -1,0 +1,82 @@
+<!-- 
+  This is a professional page for an Admin to manage system users.
+
+  Features:
+  - A header with a search bar and a prominent "Add New User" button.
+  - A responsive table that clearly displays user details.
+  - Color-coded badges for user roles and account status.
+  - Action buttons (Edit, Delete) for each user, with icons for clarity.
+  - A clean, data-focused layout that is easy to navigate.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800">User Management</h1>
+      <p class="text-gray-500">Add, remove, or update user roles and details.</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex items-center space-x-4">
+      <!-- Search Bar -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+          <fa-icon [icon]="faSearch"></fa-icon>
+        </div>
+        <input type="text" placeholder="Search users..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <!-- Add User Button -->
+      <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+        <fa-icon [icon]="faUserPlus" class="mr-2"></fa-icon>
+        Add New User
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3">User</th>
+            <th scope="col" class="px-6 py-3">Role</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3">Date Joined</th>
+            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loop through each user -->
+          <tr *ngFor="let user of users" class="bg-white border-b hover:bg-gray-50">
+            <td class="px-6 py-4 flex items-center">
+              <img [src]="user.avatar" class="w-10 h-10 rounded-full mr-4">
+              <div>
+                <p class="font-medium text-gray-900">{{ user.name }}</p>
+                <p class="text-xs text-gray-500">{{ user.email }}</p>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-xs font-medium px-2.5 py-0.5 rounded" [ngClass]="getRoleColor(user.role).bgColor + ' ' + getRoleColor(user.role).textColor">
+                {{ user.role }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="flex items-center text-sm font-medium" [ngClass]="user.status === 'Active' ? 'text-green-600' : 'text-red-600'">
+                <span class="h-2 w-2 rounded-full mr-2" [ngClass]="user.status === 'Active' ? 'bg-green-500' : 'bg-red-500'"></span>
+                {{ user.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">{{ user.dateJoined }}</td>
+            <td class="px-6 py-4 text-right">
+              <button class="p-2 text-gray-500 hover:text-blue-600" title="Edit User">
+                <fa-icon [icon]="faPencilAlt"></fa-icon>
+              </button>
+              <button class="p-2 text-gray-500 hover:text-red-600" title="Delete User">
+                <fa-icon [icon]="faTrashAlt"></fa-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

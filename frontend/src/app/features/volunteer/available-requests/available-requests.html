@@ -1,0 +1,79 @@
+<!-- 
+  This is a professional page for volunteers to view and accept available help requests.
+
+  Features:
+  - Advanced filtering and sorting controls to help volunteers find relevant tasks.
+  - A placeholder for an interactive map view to visualize request locations.
+  - A responsive grid of request cards with key details like urgency, type, and distance.
+  - Clear calls-to-action on each card.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800">Available Help Requests</h1>
+    <p class="text-gray-500">Browse open requests and accept a task to help someone in need.</p>
+  </div>
+
+  <!-- Filter & Sort Controls -->
+  <div class="bg-white p-4 rounded-lg shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-4">
+      <!-- Filter by Type -->
+      <div>
+        <label for="requestType" class="text-sm font-medium text-gray-700 sr-only">Filter by Type</label>
+        <select id="requestType" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          <option>All Types</option>
+          <option>Medical Assistance</option>
+          <option>Food & Water</option>
+          <option>Shelter / Housing</option>
+          <option>Rescue / Evacuation</option>
+        </select>
+      </div>
+      <!-- Sort by -->
+      <div>
+        <label for="sortBy" class="text-sm font-medium text-gray-700 sr-only">Sort by</label>
+        <select id="sortBy" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          <option>Sort by Urgency</option>
+          <option>Sort by Distance</option>
+          <option>Sort by Newest</option>
+        </select>
+      </div>
+    </div>
+    <!-- View Toggle -->
+    <div class="flex items-center border border-gray-300 rounded-md">
+      <button class="p-2 border-r border-gray-300 bg-blue-500 text-white">
+        <fa-icon [icon]="faList" class="w-5 h-5"></fa-icon>
+      </button>
+      <button class="p-2 text-gray-500 hover:bg-gray-100">
+        <fa-icon [icon]="faMapMarkedAlt" class="w-5 h-5"></fa-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Requests Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Loop through each request -->
+    <div *ngFor="let request of availableRequests" class="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
+      <div class="p-5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center">
+            <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full text-white" [ngClass]="request.iconBgColor">
+              <fa-icon [icon]="request.icon" class="text-lg"></fa-icon>
+            </div>
+            <h3 class="ml-3 font-semibold text-gray-800">{{ request.type }}</h3>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full" [ngClass]="getUrgencyColor(request.urgency)">
+            {{ request.urgency }}
+          </span>
+        </div>
+        <p class="text-sm text-gray-500 mt-2"><fa-icon [icon]="faMapMarkerAlt" class="mr-2"></fa-icon>{{ request.location }} (~{{ request.distance }} km away)</p>
+        <p class="text-sm text-gray-500 mt-1"><fa-icon [icon]="faUsers" class="mr-2"></fa-icon>{{ request.peopleCount }} people need help</p>
+        <p class="text-xs text-gray-400 mt-2">Posted {{ request.timeAgo }}</p>
+      </div>
+      <div class="bg-gray-50 px-5 py-3">
+        <button class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+          View Details
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

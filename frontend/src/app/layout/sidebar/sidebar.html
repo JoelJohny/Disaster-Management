@@ -1,108 +1,50 @@
+<!-- 
+  The sidebar HTML has been updated to render section headers
+  for better organization of the menu items.
+-->
 <aside 
-  class="fixed left-0 top-0 z-40 h-screen transition-all duration-300 ease-in-out bg-white border-r border-gray-200 shadow-lg"
-  [class.w-64]="!isCollapsed"
-  [class.w-16]="isCollapsed"
+  class="fixed left-0 top-0 h-screen bg-white border-r border-gray-200 shadow-lg z-40
+         transition-all duration-300 ease-in-out flex flex-col"
+  [class.w-64]="!isCollapsed || isMobile"
+  [class.w-20]="isCollapsed && !isMobile"
+  [class.translate-x-0]="isVisible"
+  [class.-translate-x-full]="!isVisible && isMobile"
 >
-  <!-- Sidebar Header -->
-  <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-    <div class="flex items-center space-x-3" [class.justify-center]="isCollapsed">
-      <div class="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg">
-        <i class="fas fa-cube text-white text-sm"></i>
+  <!-- Top Section (Logo and Title) -->
+  <div class="flex items-center h-16 px-4 border-b border-gray-200 flex-shrink-0" [class.justify-center]="isCollapsed && !isMobile">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg text-white">
+        <fa-icon [icon]="faTachometerAlt"></fa-icon>
       </div>
-      <h2 
-        class="text-xl font-bold text-gray-800 transition-all duration-300"
-        [class.opacity-0]="isCollapsed"
-        [class.hidden]="isCollapsed"
-      >
+      <h2 class="text-xl font-bold text-gray-800 transition-opacity duration-300" [class.opacity-0]="isCollapsed" [class.hidden]="isCollapsed">
         AdminPro
       </h2>
     </div>
-    
-    <!-- Toggle Button -->
-    <button
-      (click)="onToggleSidebar()"
-      class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-      [class.hidden]="isCollapsed"
-    >
-      <i class="fas fa-chevron-left text-gray-500 text-sm"></i>
-    </button>
   </div>
 
-  <!-- Navigation Menu -->
+  <!-- Middle Section (Navigation) -->
   <nav class="flex-1 px-3 py-4 overflow-y-auto">
-    <ul class="space-y-2">
+    <ul class="space-y-1">
       <li *ngFor="let item of menuItems">
-        <!-- Main Menu Item -->
-        <div>
-          <button
-            (click)="item.children ? toggleSubmenu(item) : navigateTo(item.route!)"
-            class="flex items-center w-full px-3 py-2.5 text-left rounded-lg transition-all duration-200 group relative"
-            [class]="item.isActive 
-              ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
-              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'"
-          >
-            <!-- Icon -->
-            <i 
-              [class]="item.icon" 
-              class="flex-shrink-0 w-5 h-5 transition-colors duration-200"
-              [class.text-blue-700]="item.isActive"
-              [class.text-gray-500]="!item.isActive"
-            ></i>
-            
-            <!-- Label -->
-            <span 
-              class="ml-3 font-medium transition-all duration-300"
-              [class.opacity-0]="isCollapsed"
-              [class.translate-x-2]="isCollapsed"
-            >
+        <!-- Section Header -->
+        <div *ngIf="item.section" class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider" [class.hidden]="isCollapsed && !isMobile">
+          {{ item.section }}
+        </div>
+
+        <!-- Menu Item -->
+        <div *ngIf="!item.section">
+          <button (click)="item.children ? toggleSubmenu(item) : navigateTo(item.route)" class="flex items-center w-full px-3 py-2.5 text-left rounded-lg transition-all duration-200 group relative" [class.justify-center]="isCollapsed && !isMobile" [class]="item.isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'">
+            <fa-icon [icon]="item.icon" class="flex-shrink-0 w-5 h-5 transition-colors duration-200" [class.text-blue-600]="item.isActive" [class.text-gray-500]="!item.isActive"></fa-icon>
+            <span class="ml-3 font-medium transition-all duration-200" [class.opacity-0]="isCollapsed" [class.hidden]="isCollapsed">{{ item.label }}</span>
+            <fa-icon *ngIf="item.children && !isCollapsed" [icon]="faChevronDown" class="ml-auto text-xs transition-transform duration-200" [class.rotate-180]="item.isExpanded"></fa-icon>
+            <div *ngIf="isCollapsed && !isMobile" class="absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
               {{ item.label }}
-            </span>
-
-            <!-- Badge -->
-            <span 
-              *ngIf="item.badge && !isCollapsed"
-              class="ml-auto px-2 py-0.5 text-xs font-medium text-white rounded-full"
-              [class]="item.badgeColor || 'bg-gray-500'"
-            >
-              {{ item.badge }}
-            </span>
-
-            <!-- Dropdown Arrow -->
-            <i 
-              *ngIf="item.children && !isCollapsed"
-              class="fas fa-chevron-down ml-auto text-xs transition-transform duration-200"
-              [class.rotate-180]="item.isExpanded"
-            ></i>
-
-            <!-- Tooltip for collapsed state -->
-            <div 
-              *ngIf="isCollapsed"
-              class="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50"
-            >
-              {{ item.label }}
-              <div class="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              <div class="absolute left-0 top-1/2 w-2 h-2 bg-gray-800 transform -translate-x-1/2 -translate-y-1/2 rotate-45"></div>
             </div>
           </button>
-
-          <!-- Submenu -->
-          <div 
-            *ngIf="item.children && item.isExpanded && !isCollapsed"
-            class="mt-1 space-y-1 transition-all duration-300 ease-in-out"
-          >
-            <button
-              *ngFor="let child of item.children"
-              (click)="navigateTo(child.route!)"
-              class="flex items-center w-full px-3 py-2 ml-6 text-sm rounded-lg transition-all duration-200"
-              [class]="child.isActive 
-                ? 'bg-blue-50 text-blue-700' 
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-            >
-              <i 
-                [class]="child.icon" 
-                class="flex-shrink-0 w-4 h-4 mr-2"
-                [class.text-blue-700]="child.isActive"
-                [class.text-gray-400]="!child.isActive"
-              ></i>
+          <div *ngIf="item.children && item.isExpanded && !isCollapsed" class="mt-1 ml-4 pl-5 border-l-2 border-gray-200 space-y-1 transition-all duration-300 ease-in-out">
+            <button *ngFor="let child of item.children" (click)="navigateTo(child.route)" class="flex items-center w-full px-3 py-2 text-sm rounded-lg transition-all duration-200" [class]="child.isActive ? 'text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'">
+              <fa-icon [icon]="child.icon" class="mr-3 w-4 h-4"></fa-icon>
               {{ child.label }}
             </button>
           </div>
@@ -111,57 +53,26 @@
     </ul>
   </nav>
 
-  <!-- User Profile Section -->
-  <div class="p-3 border-t border-gray-200">
-    <div class="flex items-center space-x-3" [class.justify-center]="isCollapsed">
-      <img 
-        src="https://via.placeholder.com/32x32?text=U" 
-        alt="User Avatar" 
-        class="w-8 h-8 rounded-full"
-      >
-      <div 
-        class="flex-1 transition-all duration-300"
-        [class.opacity-0]="isCollapsed"
-        [class.hidden]="isCollapsed"
-      >
-        <p class="text-sm font-medium text-gray-900">John Doe</p>
-        <p class="text-xs text-gray-500">Administrator</p>
-      </div>
-      <div 
-        class="flex items-center space-x-1"
-        [class.hidden]="isCollapsed"
-      >
-        <button
-          class="p-1 rounded hover:bg-gray-100 transition-colors duration-200"
-          title="Settings"
-        >
-          <i class="fas fa-cog text-gray-500 text-sm"></i>
-        </button>
-        <button
-          (click)="logout()"
-          class="p-1 rounded hover:bg-gray-100 transition-colors duration-200"
-          title="Logout"
-        >
-          <i class="fas fa-sign-out-alt text-gray-500 text-sm"></i>
+  <!-- Bottom Section (User Profile & Toggle) -->
+  <div class="flex-shrink-0">
+    <div class="p-3 border-t border-gray-200">
+      <div class="flex items-center" [class.justify-center]="isCollapsed && !isMobile">
+        <img src="https://placehold.co/32x32/6366f1/white?text=JD" alt="User Avatar" class="w-8 h-8 rounded-full">
+        <div class="flex-1 ml-3 transition-all duration-300" [class.opacity-0]="isCollapsed" [class.hidden]="isCollapsed">
+          <p class="text-sm font-medium text-gray-900">Jane Doe</p>
+          <p class="text-xs text-gray-500">Victim</p>
+        </div>
+        <button (click)="logout()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200" [class.hidden]="isCollapsed" title="Logout">
+          <fa-icon [icon]="faSignOutAlt" class="text-gray-600"></fa-icon>
         </button>
       </div>
     </div>
-    
-    <!-- Collapsed state tooltip for user section -->
-    <div 
-      *ngIf="isCollapsed"
-      class="mt-2 flex justify-center"
-    >
-      <button
-        (click)="logout()"
-        class="p-1.5 rounded hover:bg-gray-100 transition-colors duration-200 group relative"
-        title="Logout"
-      >
-        <i class="fas fa-sign-out-alt text-gray-500 text-sm"></i>
-        <div class="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
-          Logout
-          <div class="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
-        </div>
+    <div *ngIf="!isMobile" class="p-3 border-t border-gray-200">
+      <button (click)="onToggle()" class="w-full flex items-center p-2.5 rounded-lg hover:bg-gray-100 transition-colors" [class.justify-center]="isCollapsed">
+        <fa-icon [icon]="isCollapsed ? faChevronRight : faChevronLeft" class="text-gray-600 w-5 h-5"></fa-icon>
+        <span class="ml-3 font-medium transition-all duration-200 text-gray-700" [class.opacity-0]="isCollapsed" [class.hidden]="isCollapsed">
+            Collapse
+        </span>
       </button>
     </div>
   </div>

@@ -1,0 +1,83 @@
+<!-- 
+  This is a professional page for an Admin to generate system reports.
+
+  Features:
+  - A clean, card-based interface for selecting different types of reports.
+  - Each card includes an icon, a clear title, a description of the report, and a call-to-action.
+  - A responsive grid layout that adapts to various screen sizes.
+  - A "Date Range" selector at the top to apply to all report generation.
+-->
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800">System Reports</h1>
+      <p class="text-gray-500">Generate reports on user activity, requests, and overall system performance.</p>
+    </div>
+    <!-- Date Range Picker -->
+    <div class="mt-4 md:mt-0 flex items-center space-x-2">
+      <input type="date" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+      <span class="text-gray-500">to</span>
+      <input type="date" class="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+    </div>
+  </div>
+
+  <!-- Report Generation Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Card 1: User Activity Report -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full mr-4">
+          <fa-icon [icon]="faUsersCog" class="text-blue-500 text-xl"></fa-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800">User Activity Report</h3>
+      </div>
+      <p class="text-sm text-gray-600 flex-grow">Generate a detailed report on user registrations, logins, and role distributions (Victims, Volunteers, Admins).</p>
+      <button class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+        Generate Report
+      </button>
+    </div>
+
+    <!-- Card 2: Help Request Summary -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full mr-4">
+          <fa-icon [icon]="faClipboardList" class="text-green-500 text-xl"></fa-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800">Help Request Summary</h3>
+      </div>
+      <p class="text-sm text-gray-600 flex-grow">An overview of all help requests, including totals by type (Medical, Food, etc.) and status (Submitted, Completed).</p>
+      <button class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+        Generate Report
+      </button>
+    </div>
+
+    <!-- Card 3: Volunteer Performance -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 flex items-center justify-center bg-yellow-100 rounded-full mr-4">
+          <fa-icon [icon]="faChartLine" class="text-yellow-500 text-xl"></fa-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800">Volunteer Performance</h3>
+      </div>
+      <p class="text-sm text-gray-600 flex-grow">Report on volunteer engagement, including number of accepted tasks, average completion time, and feedback ratings.</p>
+      <button class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+        Generate Report
+      </button>
+    </div>
+
+    <!-- Card 4: System Logs -->
+    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+      <div class="flex items-center mb-4">
+        <div class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded-full mr-4">
+          <fa-icon [icon]="faFileAlt" class="text-gray-600 text-xl"></fa-icon>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800">System Logs</h3>
+      </div>
+      <p class="text-sm text-gray-600 flex-grow">Export raw system activity logs for a specified time period for auditing or detailed analysis.</p>
+      <button class="mt-4 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+        Export Logs
+      </button>
+    </div>
+  </div>
+</div>
