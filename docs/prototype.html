@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRMS Prototype</title>
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --surface-2:#f0f2f5; --border:#e2e5ea;
+  --text:#14181f; --text-dim:#5b6472; --text-faint:#8c96a5;
+  --brand:#1b5e8a; --brand-ink:#ffffff; --brand-soft:#e6f0f7;
+  --crit:#b3261e; --crit-soft:#fdeceb; --high:#b45309; --high-soft:#fdf3e3;
+  --med:#1b5e8a; --med-soft:#e6f0f7; --low:#3f6212; --low-soft:#eef5e4;
+  --ok:#2e6b35; --ok-soft:#e9f3ea;
+  --radius:10px; --radius-sm:7px;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --shadow-lg:0 8px 28px rgba(16,24,40,.14);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1116; --surface:#161b22; --surface-2:#1d232c; --border:#2b323c;
+    --text:#e8ecf1; --text-dim:#9aa5b4; --text-faint:#6e7987;
+    --brand:#4a9fd5; --brand-ink:#08131c; --brand-soft:#15303f;
+    --crit:#f2837c; --crit-soft:#3a1a18; --high:#e0a355; --high-soft:#382a14;
+    --med:#4a9fd5; --med-soft:#15303f; --low:#9ac45c; --low-soft:#23300f;
+    --ok:#7bc084; --ok-soft:#162a19;
+    --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 8px 28px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1116; --surface:#161b22; --surface-2:#1d232c; --border:#2b323c;
+  --text:#e8ecf1; --text-dim:#9aa5b4; --text-faint:#6e7987;
+  --brand:#4a9fd5; --brand-ink:#08131c; --brand-soft:#15303f;
+  --crit:#f2837c; --crit-soft:#3a1a18; --high:#e0a355; --high-soft:#382a14;
+  --med:#4a9fd5; --med-soft:#15303f; --low:#9ac45c; --low-soft:#23300f;
+  --ok:#7bc084; --ok-soft:#162a19;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 8px 28px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+a{color:var(--brand)}
+
+/* ---------- demo chrome ---------- */
+.democtl{
+  position:sticky;top:0;z-index:60;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:9px 16px;background:var(--text);color:var(--bg);font-size:12.5px;
+}
+.democtl b{font-weight:650;letter-spacing:.02em}
+.democtl .sp{flex:1}
+.roleswitch{display:flex;background:rgba(127,127,127,.25);border-radius:7px;padding:2px}
+.roleswitch button{
+  padding:4px 11px;border-radius:5px;color:inherit;opacity:.65;font-size:12.5px;font-weight:550;
+}
+.roleswitch button[aria-pressed="true"]{background:var(--bg);color:var(--text);opacity:1}
+.democtl .lnk{color:inherit;opacity:.7;text-decoration:underline;font-size:12.5px}
+.democtl .lnk:hover{opacity:1}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:238px 1fr;min-height:calc(100vh - 38px)}
+.sidebar{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:sticky;top:38px;height:calc(100vh - 38px);
+}
+.brand{
+  display:flex;align-items:center;gap:9px;padding:15px 16px;border-bottom:1px solid var(--border);
+}
+.brand .mark{
+  width:28px;height:28px;border-radius:7px;background:var(--brand);color:var(--brand-ink);
+  display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;
+}
+.brand .nm{font-weight:650;font-size:14.5px;letter-spacing:-.01em}
+.brand .sub{font-size:11px;color:var(--text-faint);margin-top:1px}
+.nav{flex:1;overflow-y:auto;padding:10px 8px}
+.navsec{
+  font-size:10.5px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-faint);padding:12px 9px 5px;
+}
+.nav a{
+  display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:var(--radius-sm);
+  color:var(--text-dim);text-decoration:none;font-size:13.5px;font-weight:500;margin-bottom:1px;
+}
+.nav a:hover{background:var(--surface-2);color:var(--text)}
+.nav a.on{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.nav a .ic{width:17px;text-align:center;font-size:14px;flex:none}
+.nav a .pill{
+  margin-left:auto;background:var(--crit);color:#fff;font-size:10.5px;font-weight:700;
+  padding:1px 6px;border-radius:9px;
+}
+.whoami{
+  border-top:1px solid var(--border);padding:11px 14px;display:flex;align-items:center;gap:9px;
+}
+.av{
+  width:31px;height:31px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;font-weight:650;font-size:12px;flex:none;
+}
+.whoami .n{font-size:13px;font-weight:600;line-height:1.25}
+.whoami .r{font-size:11px;color:var(--text-faint)}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:11px 22px;
+  background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:38px;z-index:20;
+}
+.evt{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;
+  background:var(--crit-soft);color:var(--crit);padding:5px 11px;border-radius:99px;font-weight:600;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.topbar .sp{flex:1}
+.iconbtn{
+  position:relative;width:34px;height:34px;border-radius:var(--radius-sm);
+  display:grid;place-items:center;color:var(--text-dim);font-size:16px;
+}
+.iconbtn:hover{background:var(--surface-2);color:var(--text)}
+.iconbtn .badge{
+  position:absolute;top:4px;right:4px;min-width:15px;height:15px;padding:0 3px;
+  background:var(--crit);color:#fff;border-radius:9px;font-size:9.5px;font-weight:700;
+  display:grid;place-items:center;border:2px solid var(--surface);
+}
+.content{padding:22px;max-width:1180px;width:100%}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .content{padding:16px}
+}
+
+/* ---------- primitives ---------- */
+.h1{font-size:21px;font-weight:650;letter-spacing:-.02em}
+.sub{color:var(--text-dim);font-size:13.5px;margin-top:3px}
+.pagehead{margin-bottom:18px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.pagehead .sp{flex:1}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.card-p{padding:16px}
+.cardhead{
+  padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;
+}
+.cardhead h3{font-size:14px;font-weight:650}
+.cardhead .sp{flex:1}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:960px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}}
+@media(max-width:560px){.g4{grid-template-columns:1fr}}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:8px 14px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:600;
+  background:var(--surface-2);color:var(--text);border:1px solid var(--border);
+}
+.btn:hover{border-color:var(--text-faint)}
+.btn.pri{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--crit);color:#fff;border-color:var(--crit)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:none;border-color:transparent;color:var(--text-dim)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--text)}
+
+.tag{
+  display:inline-flex;align-items:center;gap:5px;padding:2.5px 9px;border-radius:99px;
+  font-size:11.5px;font-weight:650;letter-spacing:.01em;white-space:nowrap;
+}
+.t-CRITICAL{background:var(--crit-soft);color:var(--crit)}
+.t-HIGH{background:var(--high-soft);color:var(--high)}
+.t-MEDIUM{background:var(--med-soft);color:var(--med)}
+.t-LOW{background:var(--low-soft);color:var(--low)}
+.t-SUBMITTED{background:var(--med-soft);color:var(--med)}
+.t-ASSIGNED{background:var(--high-soft);color:var(--high)}
+.t-IN_PROGRESS{background:var(--high-soft);color:var(--high)}
+.t-COMPLETED{background:var(--ok-soft);color:var(--ok)}
+.t-CANCELLED{background:var(--surface-2);color:var(--text-faint)}
+.t-PENDING{background:var(--high-soft);color:var(--high)}
+.t-APPROVED{background:var(--ok-soft);color:var(--ok)}
+.t-ACTIVE{background:var(--crit-soft);color:var(--crit)}
+.t-UPCOMING{background:var(--high-soft);color:var(--high)}
+.t-PAST{background:var(--surface-2);color:var(--text-faint)}
+.t-OPEN{background:var(--ok-soft);color:var(--ok)}
+.t-FULL{background:var(--high-soft);color:var(--high)}
+
+.kpi{padding:15px 16px}
+.kpi .lbl{font-size:12px;color:var(--text-dim);font-weight:550}
+.kpi .val{font-size:27px;font-weight:680;letter-spacing:-.025em;margin:5px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .delta{font-size:11.5px;color:var(--text-faint)}
+.kpi .delta.up{color:var(--ok)}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{
+  text-align:left;font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text-faint);padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+.ref{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+.tbl-wrap{overflow-x:auto}
+
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px}
+.field .hint{font-size:11.5px;color:var(--text-faint);font-weight:400;margin-left:5px}
+.ctl{
+  width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--bg);font-size:14px;
+}
+.ctl:focus{outline:2px solid var(--brand);outline-offset:-1px;border-color:var(--brand)}
+.ctl.bad{border-color:var(--crit);background:var(--crit-soft)}
+.err{color:var(--crit);font-size:12px;margin-top:4px;display:flex;gap:5px;align-items:center}
+
+.steps{display:flex;align-items:center;margin-bottom:22px}
+.step{display:flex;align-items:center;gap:8px}
+.step .n{
+  width:29px;height:29px;border-radius:50%;display:grid;place-items:center;
+  font-size:12.5px;font-weight:650;background:var(--surface-2);color:var(--text-faint);
+  border:1.5px solid var(--border);flex:none;
+}
+.step.done .n{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.step .t{font-size:12px;font-weight:600;color:var(--text-faint);letter-spacing:.03em}
+.step.done .t{color:var(--text)}
+.stepbar{flex:1;height:1.5px;background:var(--border);margin:0 11px}
+.stepbar.done{background:var(--brand)}
+
+.timeline{position:relative;padding-left:26px}
+.timeline::before{
+  content:"";position:absolute;left:8px;top:6px;bottom:6px;width:1.5px;background:var(--border);
+}
+.tl{position:relative;padding-bottom:17px}
+.tl:last-child{padding-bottom:0}
+.tl::before{
+  content:"";position:absolute;left:-22px;top:4px;width:9px;height:9px;border-radius:50%;
+  background:var(--brand);border:2px solid var(--surface);box-shadow:0 0 0 1.5px var(--brand);
+}
+.tl.now::before{background:var(--crit);box-shadow:0 0 0 1.5px var(--crit)}
+.tl .w{font-size:13.5px;font-weight:600}
+.tl .m{font-size:12.5px;color:var(--text-dim);margin-top:1px}
+.tl .t{font-size:11.5px;color:var(--text-faint);margin-top:2px;font-variant-numeric:tabular-nums}
+
+.empty{padding:44px 20px;text-align:center;color:var(--text-faint)}
+.empty .ic{font-size:30px;opacity:.5}
+.empty .t{font-weight:600;color:var(--text-dim);margin-top:9px;font-size:14px}
+.empty .d{font-size:13px;margin-top:3px}
+
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.pill-f{
+  padding:5.5px 12px;border-radius:99px;border:1px solid var(--border);background:var(--surface);
+  font-size:12.5px;font-weight:600;color:var(--text-dim);display:flex;gap:6px;align-items:center;
+}
+.pill-f .c{
+  background:var(--surface-2);padding:0 6px;border-radius:9px;font-size:11px;
+  font-variant-numeric:tabular-nums;
+}
+.pill-f[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.pill-f[aria-pressed="true"] .c{background:rgba(255,255,255,.2)}
+
+.stars{display:flex;gap:4px}
+.stars button{font-size:26px;color:var(--border);line-height:1;padding:2px}
+.stars button.lit{color:#e0a355}
+.stars button:focus-visible{outline:2px solid var(--brand);border-radius:4px}
+
+.sos{
+  width:100%;padding:17px;border-radius:var(--radius);background:var(--crit);color:#fff;
+  font-size:16px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;
+  justify-content:center;gap:10px;box-shadow:var(--shadow);
+}
+.sos:hover{filter:brightness(1.07)}
+.sos .s{font-size:11.5px;font-weight:500;opacity:.85;letter-spacing:0}
+
+.toasts{position:fixed;bottom:18px;right:18px;z-index:80;display:flex;flex-direction:column;gap:9px}
+.toast{
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--brand);
+  border-radius:var(--radius-sm);padding:11px 15px;box-shadow:var(--shadow-lg);
+  min-width:270px;max-width:370px;animation:slide .22s ease-out;
+}
+.toast.bad{border-left-color:var(--crit)}
+.toast.good{border-left-color:var(--ok)}
+.toast .t{font-size:13.5px;font-weight:650}
+.toast .m{font-size:12.5px;color:var(--text-dim);margin-top:2px}
+@keyframes slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+.modal-bg{
+  position:fixed;inset:0;background:rgba(10,14,20,.55);z-index:70;
+  display:grid;place-items:center;padding:20px;
+}
+.modal{
+  background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);
+  width:100%;max-width:460px;max-height:88vh;overflow-y:auto;
+}
+.modal .hd{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.modal .hd h3{font-size:15px;font-weight:650;flex:1}
+.modal .bd{padding:18px}
+.modal .ft{padding:13px 18px;border-top:1px solid var(--border);display:flex;gap:9px;justify-content:flex-end}
+
+.note{
+  background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);
+  border-radius:var(--radius-sm);padding:11px 14px;font-size:12.5px;color:var(--text-dim);
+  display:flex;gap:9px;
+}
+.note .ic{color:var(--brand);flex:none}
+.note b{color:var(--text)}
+
+.bars{display:flex;align-items:flex-end;gap:7px;height:96px;padding-top:8px}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
+.bars .b i{
+  width:100%;background:var(--brand);border-radius:3px 3px 0 0;display:block;min-height:3px;
+  opacity:.78;
+}
+.bars .b:last-child i{opacity:1}
+.bars .b span{font-size:10.5px;color:var(--text-faint)}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:13px}
+.kv dt{color:var(--text-dim);white-space:nowrap}
+.kv dd{font-weight:550}
+.locked{
+  background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);
+  padding:11px 14px;font-size:12.5px;color:var(--text-faint);display:flex;gap:8px;align-items:center;
+}
+.forbidden{
+  max-width:440px;margin:56px auto;text-align:center;
+}
+.forbidden .code{font-size:52px;font-weight:700;color:var(--crit);letter-spacing:-.03em}
+.progress{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.sronly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="democtl">
+  <b>DRMS PROTOTYPE</b>
+  <span style="opacity:.6">Click through as:</span>
+  <div class="roleswitch" id="roles"></div>
+  <span class="sp"></span>
+  <button class="lnk" onclick="demoRace()">▶ Demo the claim race</button>
+  <button class="lnk" onclick="demoForbidden()">▶ Demo RBAC block</button>
+  <button class="lnk" onclick="toggleTheme()">◐ Theme</button>
+  <button class="lnk" onclick="resetAll()">↺ Reset</button>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">DR</div>
+      <div>
+        <div class="nm">DRMS</div>
+        <div class="sub">Kerala Relief Network</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="whoami">
+      <div class="av" id="avatar">P</div>
+      <div style="min-width:0">
+        <div class="n" id="uname">Priya Menon</div>
+        <div class="r" id="urole">Victim · Ernakulam</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="evt"><span class="dot"></span> Kerala Floods 2025 · SEVERE · ACTIVE</div>
+      <span class="sp"></span>
+      <button class="iconbtn" onclick="openBell()" title="Notifications">
+        🔔<span class="badge" id="bellct">0</span>
+      </button>
+      <button class="iconbtn" title="Help">?</button>
+    </header>
+    <main class="content" id="view"></main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div id="modal"></div>
+
+<script>
+// ============================================================
+//  SEED DATA — mirrors db/seed.sql from the delivery plan
+// ============================================================
+const SEED = () => ({
+  me: 'priya',
+  users: {
+    priya:  {id:1, name:'Priya Menon',  role:'VICTIM',    district:'Ernakulam', phone:'+91 98470 11234', initials:'P'},
+    arun:   {id:2, name:'Arun Kumar',   role:'VOLUNTEER', district:'Ernakulam', phone:'+91 98470 55221', initials:'A',
+             approval:'APPROVED', skills:['First Aid','Boat Operator'], radius:15, hours:12.5, completed:5, rating:4.8},
+    admin:  {id:3, name:'Divya Nair',   role:'ADMIN',     district:'—',         phone:'+91 98470 90001', initials:'D'},
+  },
+  event: {name:'Kerala Floods 2025', severity:'SEVERE', status:'ACTIVE', district:'Ernakulam',
+          helpline:'1077', radius:40, since:'15 Aug 2026'},
+  shelter: {name:'Govt. HSS Aluva', district:'Ernakulam', dist:2.4, occ:180, cap:300, status:'OPEN'},
+  types: [
+    {code:'MEDICAL',    label:'Medical Assistance'},
+    {code:'FOOD_WATER', label:'Food & Water'},
+    {code:'SHELTER',    label:'Shelter / Housing'},
+    {code:'RESCUE',     label:'Rescue / Evacuation'},
+    {code:'OTHER',      label:'Other'},
+  ],
+  requests: [
+    {ref:'REQ-2026-000041', type:'FOOD_WATER', urgency:'HIGH', status:'COMPLETED', by:'Priya Menon', byId:1,
+     place:'Desom, Aluva', people:4, dist:1.8, assignee:'Arun Kumar', hours:2.0, rated:5,
+     tl:[['SUBMITTED','Priya Menon','14 Sep, 09:12'],['ASSIGNED','Arun Kumar','14 Sep, 09:31'],
+         ['IN_PROGRESS','Arun Kumar','14 Sep, 10:04'],['COMPLETED','Arun Kumar','14 Sep, 12:20']]},
+    {ref:'REQ-2026-000043', type:'SHELTER', urgency:'MEDIUM', status:'IN_PROGRESS', by:'Priya Menon', byId:1,
+     place:'Near Aluva Metro', people:3, dist:2.1, assignee:'Arun Kumar',
+     tl:[['SUBMITTED','Priya Menon','18 Sep, 16:40'],['ASSIGNED','Arun Kumar','18 Sep, 17:02'],
+         ['IN_PROGRESS','Arun Kumar','19 Sep, 08:15']]},
+    {ref:'REQ-2026-000044', type:'MEDICAL', urgency:'CRITICAL', status:'SUBMITTED', by:'Rajesh Pillai', byId:7,
+     place:'Kunnathunad', people:2, dist:6.3,
+     tl:[['SUBMITTED','Rajesh Pillai','20 Sep, 07:48']]},
+    {ref:'REQ-2026-000045', type:'RESCUE', urgency:'CRITICAL', status:'SUBMITTED', by:'Fathima Basheer', byId:8,
+     place:'Chengamanad, near canal', people:6, dist:4.1,
+     tl:[['SUBMITTED','Fathima Basheer','20 Sep, 08:15']]},
+    {ref:'REQ-2026-000046', type:'FOOD_WATER', urgency:'MEDIUM', status:'SUBMITTED', by:'Suresh Varma', byId:9,
+     place:'Edathala', people:5, dist:3.7,
+     tl:[['SUBMITTED','Suresh Varma','20 Sep, 08:52']]},
+    {ref:'REQ-2026-000039', type:'MEDICAL', urgency:'HIGH', status:'CANCELLED', by:'Priya Menon', byId:1,
+     place:'Desom, Aluva', people:1, dist:1.8,
+     tl:[['SUBMITTED','Priya Menon','12 Sep, 11:00'],['CANCELLED','Priya Menon','12 Sep, 11:40']]},
+  ],
+  pendingVolunteer: {name:'Meera Thomas', email:'meera.t@example.com', district:'Ernakulam',
+                     skills:['First Aid','Translator'], applied:'19 Sep 2026'},
+  notes: [
+    {t:'Request completed', m:'REQ-2026-000041 was marked complete by Arun Kumar.', w:'6 days ago', read:true},
+    {t:'Volunteer assigned', m:'Arun Kumar is on the way for REQ-2026-000043.', w:'2 days ago', read:true},
+  ],
+  trend: [4,7,5,9,6,8,3],
+});
+
+let S = SEED();
+let route = 'v-dash';
+let draft = null;
+let raceDone = false;
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+const NAV = {
+  VICTIM: [
+    ['Relief', [
+      ['v-dash',   '⌂', 'Dashboard'],
+      ['v-new',    '✚', 'Request Help'],
+      ['v-mine',   '☰', 'My Requests'],
+    ]],
+    ['Account', [['profile','◍','My Profile']]],
+  ],
+  VOLUNTEER: [
+    ['Volunteer', [
+      ['vol-dash', '⌂', 'Dashboard'],
+      ['vol-pool', '◎', 'Available Requests'],
+      ['vol-mine', '☑', 'My Tasks'],
+    ]],
+    ['Account', [['profile','◍','My Profile']]],
+  ],
+  ADMIN: [
+    ['Overview', [['a-dash','⌂','Dashboard']]],
+    ['Management', [
+      ['a-users',  '⚇', 'User Management'],
+      ['a-reqs',   '☰', 'All Requests'],
+      ['a-events', '◈', 'Disaster Events'],
+    ]],
+    ['System', [['a-reports','▤','Reports']]],
+    ['Account', [['profile','◍','My Profile']]],
+  ],
+};
+const HOME = {VICTIM:'v-dash', VOLUNTEER:'vol-dash', ADMIN:'a-dash'};
+
+function me(){ return S.users[S.me]; }
+function go(r){ route = r; render(); window.scrollTo(0,0); }
+function switchRole(k){ S.me = k; route = HOME[me().role]; render(); }
+
+// ============================================================
+//  HELPERS
+// ============================================================
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const typeLabel = c => (S.types.find(t=>t.code===c)||{}).label || c;
+const nice = s => s.replace(/_/g,' ');
+const tag = (v) => `<span class="tag t-${v}">${nice(v)}</span>`;
+const myReqs = () => S.requests.filter(r => r.byId === 1);
+const pool = () => S.requests.filter(r => r.status === 'SUBMITTED');
+const myTasks = () => S.requests.filter(r => r.assignee === 'Arun Kumar' && r.status !== 'CANCELLED');
+const unread = () => S.notes.filter(n => !n.read).length;
+
+function toast(title, msg, kind){
+  const el = document.createElement('div');
+  el.className = 'toast ' + (kind||'');
+  el.innerHTML = `<div class="t">${esc(title)}</div><div class="m">${esc(msg)}</div>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 4200);
+}
+function notify(t, m){
+  S.notes.unshift({t, m, w:'just now', read:false});
+  document.getElementById('bellct').textContent = unread();
+}
+function closeModal(){ document.getElementById('modal').innerHTML = ''; }
+function modal(html){ document.getElementById('modal').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
+
+// ============================================================
+//  SCREENS — VICTIM
+// ============================================================
+function vDash(){
+  const open = myReqs().filter(r=>['SUBMITTED','ASSIGNED','IN_PROGRESS'].includes(r.status)).length;
+  const sh = S.shelter;
+  return `
+  <div class="pagehead">
+    <div class="sp">
+      <div class="h1">Hello, Priya</div>
+      <div class="sub">You are in an area with an active disaster response. Help is available.</div>
+    </div>
+  </div>
+
+  <div class="grid g3" style="margin-bottom:14px">
+    <div class="card card-p" style="border-left:3px solid var(--crit)">
+      <div style="font-size:11.5px;font-weight:650;letter-spacing:.05em;color:var(--crit)">ACTIVE IN YOUR DISTRICT</div>
+      <div style="font-size:17px;font-weight:650;margin:6px 0 3px">${S.event.name}</div>
+      <div class="sub" style="margin:0">${S.event.severity} · since ${S.event.since} · ${S.event.district}</div>
+      <div style="margin-top:11px;font-size:13px">Helpline <b style="font-family:var(--mono)">${S.event.helpline}</b></div>
+    </div>
+    <div class="card card-p">
+      <div class="kpi" style="padding:0">
+        <div class="lbl">Your open requests</div>
+        <div class="val">${open}</div>
+        <div class="delta">${myReqs().length} total submitted</div>
+      </div>
+      <button class="btn sm" style="margin-top:10px" onclick="go('v-mine')">View all →</button>
+    </div>
+    <div class="card card-p">
+      <div style="font-size:11.5px;font-weight:650;letter-spacing:.05em;color:var(--text-faint)">NEAREST OPEN SHELTER</div>
+      <div style="font-size:15.5px;font-weight:650;margin:6px 0 3px">${sh.name}</div>
+      <div class="sub" style="margin:0">${sh.dist} km away · ${sh.occ}/${sh.cap} occupied</div>
+      <div style="margin-top:9px">${tag(sh.status)}</div>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div>
+      <button class="sos" onclick="sos()">
+        <span>🆘 SEND SOS</span>
+        <span class="s">One tap · uses your saved location</span>
+      </button>
+      <div class="note" style="margin-top:12px">
+        <span class="ic">ℹ</span>
+        <div>SOS files a <b>CRITICAL rescue request</b> at your saved home location with no form to fill in.
+        Use the full form below when you can describe what you need.</div>
+      </div>
+      <button class="btn pri" style="width:100%;margin-top:12px;padding:12px" onclick="go('v-new')">
+        ✚ Request help with a form
+      </button>
+    </div>
+    <div class="card">
+      <div class="cardhead"><h3>Your recent activity</h3></div>
+      <div class="card-p">
+        ${myReqs().slice(0,3).map(r=>`
+          <div style="display:flex;gap:11px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:600">${esc(typeLabel(r.type))}</div>
+              <div class="ref">${r.ref}</div>
+            </div>
+            ${tag(r.status)}
+            <button class="btn sm ghost" onclick="go('v-req:${r.ref}')">→</button>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function vNew(){
+  draft = draft || {step:1, type:'', urgency:'', place:'', people:'', desc:'', touched:{}};
+  const d = draft;
+  const bad = (k) => d.touched[k] && !d[k];
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Request help</div>
+    <div class="sub">Tell us what you need. Every field matters for getting the right help to you.</div>
+  </div></div>
+
+  <div class="card card-p" style="max-width:640px">
+    <div class="steps">
+      <div class="step ${d.step>=1?'done':''}"><div class="n">${d.step>1?'✓':'1'}</div><div class="t">DETAILS</div></div>
+      <div class="stepbar ${d.step>1?'done':''}"></div>
+      <div class="step ${d.step>=2?'done':''}"><div class="n">${d.step>2?'✓':'2'}</div><div class="t">LOCATION</div></div>
+      <div class="stepbar ${d.step>2?'done':''}"></div>
+      <div class="step ${d.step>=3?'done':''}"><div class="n">3</div><div class="t">DESCRIBE</div></div>
+    </div>
+
+    ${d.step===1?`
+      <div class="field">
+        <label for="f-type">Type of assistance needed</label>
+        <select class="ctl ${bad('type')?'bad':''}" id="f-type" onchange="setD('type',this.value)">
+          <option value="">— Please select —</option>
+          ${S.types.map(t=>`<option value="${t.code}" ${d.type===t.code?'selected':''}>${t.label}</option>`).join('')}
+        </select>
+        ${bad('type')?'<div class="err">⚠ Select the kind of help you need</div>':''}
+      </div>
+      <div class="field">
+        <label for="f-urg">How urgent is this?</label>
+        <select class="ctl ${bad('urgency')?'bad':''}" id="f-urg" onchange="setD('urgency',this.value)">
+          <option value="">— Please select —</option>
+          <option value="CRITICAL" ${d.urgency==='CRITICAL'?'selected':''}>Critical — life is at risk right now</option>
+          <option value="HIGH" ${d.urgency==='HIGH'?'selected':''}>High — needed within hours</option>
+          <option value="MEDIUM" ${d.urgency==='MEDIUM'?'selected':''}>Medium — needed today</option>
+          <option value="LOW" ${d.urgency==='LOW'?'selected':''}>Low — can wait</option>
+        </select>
+        ${bad('urgency')?'<div class="err">⚠ Tell us how urgent this is</div>':''}
+      </div>
+    `:''}
+
+    ${d.step===2?`
+      <div class="field">
+        <label for="f-place">Where are you? <span class="hint">address or landmark</span></label>
+        <input class="ctl ${bad('place')?'bad':''}" id="f-place" value="${esc(d.place)}"
+               placeholder="e.g. near Aluva Metro Station" oninput="setD('place',this.value)">
+        ${bad('place')?'<div class="err">⚠ We need a location to send help to</div>':''}
+      </div>
+      <div class="field">
+        <label for="f-ppl">How many people need help?</label>
+        <input class="ctl ${bad('people')?'bad':''}" id="f-ppl" type="number" min="1" value="${esc(d.people)}"
+               placeholder="1" oninput="setD('people',this.value)">
+        ${bad('people')?'<div class="err">⚠ Enter at least 1</div>':''}
+      </div>
+      <div class="note"><span class="ic">📍</span><div>Your district is <b>Ernakulam</b>, taken from your profile.
+      Distance to volunteers is computed from district coordinates — no GPS permission needed.</div></div>
+    `:''}
+
+    ${d.step===3?`
+      <div class="field">
+        <label for="f-desc">Describe your situation</label>
+        <textarea class="ctl ${bad('desc')?'bad':''}" id="f-desc" rows="5"
+          placeholder="For medical requests mention symptoms. For rescue, describe the surroundings."
+          oninput="setD('desc',this.value)">${esc(d.desc)}</textarea>
+        ${bad('desc')?'<div class="err">⚠ Please describe what is happening</div>':''}
+      </div>
+      <div class="field">
+        <label for="f-con">Contact number <span class="hint">defaults to your account</span></label>
+        <input class="ctl" id="f-con" placeholder="${me().phone}">
+      </div>
+    `:''}
+
+    <div style="display:flex;gap:9px;justify-content:space-between;margin-top:20px">
+      <button class="btn" onclick="stepBack()" ${d.step===1?'disabled':''}>← Back</button>
+      ${d.step<3
+        ? `<button class="btn pri" onclick="stepNext()">Continue →</button>`
+        : `<button class="btn pri" onclick="submitReq()">Submit request</button>`}
+    </div>
+  </div>
+
+  <div class="note" style="max-width:640px;margin-top:14px">
+    <span class="ic">✱</span>
+    <div><b>Try it:</b> press Continue with nothing selected. Validation blocks the step —
+    this is what proves the form is really bound, not decoration.</div>
+  </div>`;
+}
+
+function setD(k,v){ draft[k]=v; }
+function stepBack(){ if(draft.step>1){draft.step--; render();} }
+function stepNext(){
+  const need = draft.step===1 ? ['type','urgency'] : ['place','people'];
+  need.forEach(k=>draft.touched[k]=true);
+  if(need.some(k=>!draft[k])){ render(); toast('Check the form','Some required fields are empty.','bad'); return; }
+  draft.step++; render();
+}
+function submitReq(){
+  draft.touched.desc = true;
+  if(!draft.desc){ render(); toast('Check the form','Please describe your situation.','bad'); return; }
+  const n = 47;
+  const ref = 'REQ-2026-0000' + n;
+  S.requests.unshift({
+    ref, type:draft.type, urgency:draft.urgency, status:'SUBMITTED', by:'Priya Menon', byId:1,
+    place:draft.place, people:+draft.people, dist:2.2,
+    tl:[['SUBMITTED','Priya Menon','20 Sep, now']]
+  });
+  draft = null;
+  toast('Request submitted', ref + ' is now visible to nearby volunteers.', 'good');
+  go('v-req:'+ref);
+}
+function sos(){
+  const ref = 'REQ-2026-000048';
+  S.requests.unshift({
+    ref, type:'RESCUE', urgency:'CRITICAL', status:'SUBMITTED', by:'Priya Menon', byId:1,
+    place:'Saved home location — Desom, Aluva', people:1, dist:1.8,
+    tl:[['SUBMITTED','Priya Menon (SOS)','20 Sep, now']]
+  });
+  toast('SOS sent', 'A critical rescue request was filed at your saved location.', 'bad');
+  go('v-req:'+ref);
+}
+
+function vMine(){
+  const rs = myReqs();
+  const counts = {};
+  rs.forEach(r => counts[r.status] = (counts[r.status]||0)+1);
+  const f = vMine.filter || 'ALL';
+  const shown = f==='ALL' ? rs : rs.filter(r=>r.status===f);
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">My requests</div>
+    <div class="sub">Every request you have submitted, and where each one stands.</div>
+  </div><button class="btn pri" onclick="go('v-new')">✚ New request</button></div>
+
+  <div class="pills">
+    ${['ALL','SUBMITTED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED'].map(k=>`
+      <button class="pill-f" aria-pressed="${f===k}" onclick="vMine.filter='${k}';render()">
+        ${nice(k)} <span class="c">${k==='ALL'?rs.length:(counts[k]||0)}</span>
+      </button>`).join('')}
+  </div>
+
+  <div class="note" style="margin-bottom:14px">
+    <span class="ic">ℹ</span>
+    <div>Those counts come from the <b>server response envelope</b>, not from filtering an array in the
+    browser — so they stay correct across pagination.</div>
+  </div>
+
+  ${shown.length ? `<div class="card tbl-wrap"><table>
+    <thead><tr><th>Reference</th><th>Type</th><th>Urgency</th><th>Status</th><th>Volunteer</th><th></th></tr></thead>
+    <tbody>${shown.map(r=>`<tr>
+      <td class="ref">${r.ref}</td>
+      <td>${esc(typeLabel(r.type))}</td>
+      <td>${tag(r.urgency)}</td>
+      <td>${tag(r.status)}</td>
+      <td>${r.assignee?esc(r.assignee):'<span style="color:var(--text-faint)">—</span>'}</td>
+      <td><button class="btn sm" onclick="go('v-req:${r.ref}')">Details</button></td>
+    </tr>`).join('')}</tbody></table></div>`
+  : `<div class="card empty"><div class="ic">☰</div><div class="t">Nothing here</div>
+     <div class="d">No requests with that status.</div></div>`}`;
+}
+
+function vReq(ref){
+  const r = S.requests.find(x=>x.ref===ref);
+  if(!r) return `<div class="card empty"><div class="t">Request not found</div></div>`;
+  const canFeedback = r.status==='COMPLETED' && r.byId===1;
+  return `
+  <div class="pagehead">
+    <div class="sp">
+      <button class="btn sm ghost" onclick="go('v-mine')">← My requests</button>
+      <div class="h1" style="margin-top:7px">${esc(typeLabel(r.type))}</div>
+      <div class="ref" style="margin-top:3px">${r.ref}</div>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center">
+      ${tag(r.urgency)} ${tag(r.status)}
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="cardhead"><h3>Status timeline</h3></div>
+      <div class="card-p">
+        <div class="timeline">
+          ${r.tl.map((t,i)=>`
+            <div class="tl ${i===r.tl.length-1?'now':''}">
+              <div class="w">${nice(t[0])}</div>
+              <div class="m">by ${esc(t[1])}</div>
+              <div class="t">${esc(t[2])}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card card-p" style="margin-bottom:14px">
+        <h3 style="font-size:14px;font-weight:650;margin-bottom:11px">Request details</h3>
+        <dl class="kv">
+          <dt>Type</dt><dd>${esc(typeLabel(r.type))}</dd>
+          <dt>Urgency</dt><dd>${nice(r.urgency)}</dd>
+          <dt>Location</dt><dd>${esc(r.place)}</dd>
+          <dt>People</dt><dd>${r.people}</dd>
+          <dt>Submitted by</dt><dd>${esc(r.by)}</dd>
+        </dl>
+      </div>
+
+      ${r.assignee ? `
+        <div class="card card-p" style="margin-bottom:14px">
+          <h3 style="font-size:14px;font-weight:650;margin-bottom:11px">Your volunteer</h3>
+          <div style="display:flex;gap:11px;align-items:center">
+            <div class="av">A</div>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14px">${esc(r.assignee)}</div>
+              <div class="sub" style="margin:0">${S.users.arun.phone} · ★ ${S.users.arun.rating}</div>
+            </div>
+          </div>
+          <div class="note" style="margin-top:12px"><span class="ic">🔒</span>
+          <div>Contact details became visible to you <b>only when the volunteer accepted</b>.</div></div>
+        </div>` : ''}
+
+      ${canFeedback ? (r.rated
+        ? `<div class="card card-p"><h3 style="font-size:14px;font-weight:650;margin-bottom:9px">Your rating</h3>
+           <div class="stars">${[1,2,3,4,5].map(i=>`<button class="${i<=r.rated?'lit':''}" disabled>★</button>`).join('')}</div>
+           <button class="btn sm" style="margin-top:11px" onclick="tryDoubleFeedback()">Submit feedback again</button>
+           <div class="sub" style="margin-top:7px;font-size:12px">Try it — the second attempt is rejected by a
+           <b>UNIQUE index</b>, not an if-statement.</div></div>`
+        : `<div class="card card-p"><h3 style="font-size:14px;font-weight:650;margin-bottom:9px">Rate this help</h3>
+           <div class="stars" id="rate">${[1,2,3,4,5].map(i=>`<button onclick="rate('${r.ref}',${i})" aria-label="${i} stars">★</button>`).join('')}</div>
+           </div>`) : ''}
+
+      ${r.status==='SUBMITTED' && r.byId===1 ? `
+        <button class="btn danger" style="width:100%" onclick="cancelReq('${r.ref}')">Cancel this request</button>` : ''}
+    </div>
+  </div>`;
+}
+function rate(ref,n){
+  const r = S.requests.find(x=>x.ref===ref);
+  r.rated = n;
+  toast('Thank you','Your rating was recorded.','good');
+  render();
+}
+function tryDoubleFeedback(){
+  toast('409 Conflict','Feedback already submitted for this request.','bad');
+}
+function cancelReq(ref){
+  const r = S.requests.find(x=>x.ref===ref);
+  r.status='CANCELLED'; r.tl.push(['CANCELLED','Priya Menon','20 Sep, now']);
+  toast('Request cancelled','It is no longer visible to volunteers.');
+  render();
+}
+
+// ============================================================
+//  SCREENS — VOLUNTEER
+// ============================================================
+function volDash(){
+  const u = S.users.arun;
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Hello, Arun</div>
+    <div class="sub">Thank you for volunteering. Here is where you stand.</div>
+  </div>${tag(u.approval)}</div>
+
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="card kpi"><div class="lbl">Available nearby</div><div class="val">${pool().length}</div>
+      <div class="delta">within ${u.radius} km</div></div>
+    <div class="card kpi"><div class="lbl">My active tasks</div>
+      <div class="val">${myTasks().filter(r=>r.status!=='COMPLETED').length}</div>
+      <div class="delta">in progress now</div></div>
+    <div class="card kpi"><div class="lbl">Completed</div><div class="val">${u.completed}</div>
+      <div class="delta up">this month</div></div>
+    <div class="card kpi"><div class="lbl">Hours contributed</div><div class="val">${u.hours}</div>
+      <div class="delta">★ ${u.rating} average rating</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="cardhead"><h3>Most urgent nearby</h3><span class="sp"></span>
+        <button class="btn sm" onclick="go('vol-pool')">See all</button></div>
+      <div class="card-p">
+        ${pool().slice(0,3).map(r=>`
+          <div style="display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:600">${esc(typeLabel(r.type))}</div>
+              <div class="sub" style="margin:0;font-size:12px">${r.dist} km · ${r.people} people</div>
+            </div>
+            ${tag(r.urgency)}
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card card-p">
+      <h3 style="font-size:14px;font-weight:650;margin-bottom:11px">Your profile</h3>
+      <dl class="kv">
+        <dt>Status</dt><dd>${tag(u.approval)}</dd>
+        <dt>District</dt><dd>${u.district}</dd>
+        <dt>Service radius</dt><dd>${u.radius} km</dd>
+        <dt>Skills</dt><dd>${u.skills.join(', ')}</dd>
+      </dl>
+      <div class="note" style="margin-top:13px"><span class="ic">🔒</span>
+      <div>Only <b>admin-approved</b> volunteers can claim requests. This is the gate that stops a stranger
+      getting a geolocated list of isolated households.</div></div>
+    </div>
+  </div>`;
+}
+
+function volPool(){
+  const rs = pool().slice().sort((a,b)=>{
+    const o = {CRITICAL:4,HIGH:3,MEDIUM:2,LOW:1};
+    return o[b.urgency]-o[a.urgency] || a.dist-b.dist;
+  });
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Available requests</div>
+    <div class="sub">Sorted by urgency, then distance. Accept one to see the victim's contact details.</div>
+  </div></div>
+
+  <div class="note" style="margin-bottom:14px"><span class="ic">🔒</span>
+  <div>Victim <b>names and phone numbers are hidden</b> until you accept. You see only an approximate
+  distance. Every reveal is written to the audit log.</div></div>
+
+  ${rs.length ? `<div class="grid g2">${rs.map(r=>`
+    <div class="card card-p">
+      <div style="display:flex;gap:9px;align-items:flex-start;margin-bottom:10px">
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:650">${esc(typeLabel(r.type))}</div>
+          <div class="ref" style="margin-top:2px">${r.ref}</div>
+        </div>
+        ${tag(r.urgency)}
+      </div>
+      <dl class="kv" style="margin-bottom:11px">
+        <dt>Distance</dt><dd>${r.dist} km away</dd>
+        <dt>People</dt><dd>${r.people}</dd>
+        <dt>Area</dt><dd>${esc(r.place)}</dd>
+      </dl>
+      <div class="locked">🔒 Victim contact — released on acceptance</div>
+      <button class="btn pri" style="width:100%;margin-top:11px" onclick="claim('${r.ref}')">Accept this request</button>
+    </div>`).join('')}</div>`
+  : `<div class="card empty"><div class="ic">◎</div><div class="t">Nothing waiting</div>
+     <div class="d">Every nearby request has been claimed.</div></div>`}`;
+}
+
+function claim(ref){
+  const r = S.requests.find(x=>x.ref===ref);
+  if(r.status !== 'SUBMITTED'){
+    toast('409 Conflict', 'Already accepted by another volunteer.', 'bad'); render(); return;
+  }
+  r.status = 'ASSIGNED'; r.assignee = 'Arun Kumar';
+  r.tl.push(['ASSIGNED','Arun Kumar','20 Sep, now']);
+  notify('Volunteer assigned', 'Arun Kumar has accepted ' + ref + '.');
+  toast('Request accepted', 'Victim contact details are now visible to you.', 'good');
+  go('vol-mine');
+}
+
+function volMine(){
+  const rs = myTasks();
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">My tasks</div>
+    <div class="sub">Requests you have accepted. Move each one along as you work.</div>
+  </div></div>
+
+  ${rs.length ? rs.map(r=>`
+    <div class="card card-p" style="margin-bottom:13px">
+      <div style="display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:190px">
+          <div style="font-size:15px;font-weight:650">${esc(typeLabel(r.type))}</div>
+          <div class="ref" style="margin-top:2px">${r.ref}</div>
+          <dl class="kv" style="margin-top:11px">
+            <dt>Victim</dt><dd>${esc(r.by)} · ${r.byId===1?S.users.priya.phone:'+91 98470 33xxx'}</dd>
+            <dt>Location</dt><dd>${esc(r.place)} (${r.dist} km)</dd>
+            <dt>People</dt><dd>${r.people}</dd>
+          </dl>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          ${tag(r.status)}
+          ${r.status!=='COMPLETED'?`<button class="btn pri sm" onclick="openStatus('${r.ref}')">Update status</button>`:''}
+          ${r.hours?`<div class="sub" style="margin:0;font-size:12px">${r.hours}h logged</div>`:''}
+        </div>
+      </div>
+      ${r.status==='IN_PROGRESS'?`<div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-bottom:5px">
+          <span>Progress</span><span>50%</span></div>
+        <div class="progress"><i style="width:50%"></i></div></div>`:''}
+    </div>`).join('')
+  : `<div class="card empty"><div class="ic">☑</div><div class="t">No tasks yet</div>
+     <div class="d">Accept a request from the available pool.</div></div>`}`;
+}
+
+function openStatus(ref){
+  const r = S.requests.find(x=>x.ref===ref);
+  modal(`
+    <div class="hd"><h3>Update ${r.ref}</h3><button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+    <div class="bd">
+      <div class="sub" style="margin-bottom:13px">Current status: <b>${nice(r.status)}</b></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${r.status==='ASSIGNED'?`
+          <button class="btn" style="justify-content:flex-start" onclick="setStatus('${ref}','IN_PROGRESS')">
+            → Mark In Progress</button>
+          <button class="btn" style="justify-content:flex-start" onclick="illegalJump()">
+            → Mark Completed <span style="color:var(--text-faint);font-weight:400">(skips a step)</span></button>
+          <button class="btn" style="justify-content:flex-start" onclick="setStatus('${ref}','SUBMITTED')">
+            ↩ Release back to pool</button>`:''}
+        ${r.status==='IN_PROGRESS'?`
+          <button class="btn pri" style="justify-content:flex-start" onclick="complete('${ref}')">
+            ✓ Mark Completed &amp; log hours</button>`:''}
+      </div>
+      ${r.status==='ASSIGNED'?`<div class="note" style="margin-top:14px"><span class="ic">✱</span>
+      <div><b>Try the middle one.</b> The server rejects illegal transitions — the lifecycle is enforced
+      server-side, not by hiding buttons.</div></div>`:''}
+    </div>`);
+}
+function illegalJump(){
+  closeModal();
+  toast('400 Bad Request','Illegal transition: ASSIGNED → COMPLETED. Go through IN_PROGRESS.','bad');
+}
+function setStatus(ref,st){
+  const r = S.requests.find(x=>x.ref===ref);
+  if(st==='SUBMITTED'){ r.status='SUBMITTED'; r.assignee=null; r.tl.push(['RELEASED','Arun Kumar','20 Sep, now']); }
+  else { r.status=st; r.tl.push([st,'Arun Kumar','20 Sep, now']); }
+  closeModal(); toast('Status updated', r.ref + ' is now ' + nice(r.status) + '.', 'good'); render();
+}
+function complete(ref){
+  const r = S.requests.find(x=>x.ref===ref);
+  r.status='COMPLETED'; r.hours=2.5; r.tl.push(['COMPLETED','Arun Kumar','20 Sep, now']);
+  S.users.arun.hours += 2.5; S.users.arun.completed += 1;
+  notify('Request completed', r.ref + ' was completed. You can now leave feedback.');
+  closeModal(); toast('Task completed','2.5 hours logged against your profile.','good'); render();
+}
+
+// ============================================================
+//  SCREENS — ADMIN
+// ============================================================
+function aDash(){
+  const all = S.requests;
+  const open = all.filter(r=>['SUBMITTED','ASSIGNED','IN_PROGRESS'].includes(r.status)).length;
+  const done = all.filter(r=>r.status==='COMPLETED').length;
+  const crit = all.filter(r=>r.urgency==='CRITICAL' && r.status==='SUBMITTED').length;
+  const mx = Math.max(...S.trend);
+  const feed = all.flatMap(r=>r.tl.map(t=>({ref:r.ref,st:t[0],who:t[1],when:t[2]})))
+                  .slice(-6).reverse();
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Operations dashboard</div>
+    <div class="sub">${S.event.name} · ${S.event.district} · live figures</div>
+  </div></div>
+
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="card kpi"><div class="lbl">Open requests</div><div class="val">${open}</div>
+      <div class="delta">awaiting or in progress</div></div>
+    <div class="card kpi" style="border-left:3px solid var(--crit)">
+      <div class="lbl">Critical unassigned</div><div class="val" style="color:var(--crit)">${crit}</div>
+      <div class="delta">needs dispatch now</div></div>
+    <div class="card kpi"><div class="lbl">Resolved</div><div class="val">${done}</div>
+      <div class="delta up">↑ this week</div></div>
+    <div class="card kpi"><div class="lbl">Volunteers online</div><div class="val">6</div>
+      <div class="delta">active in last 5 min</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="cardhead"><h3>Requests, last 7 days</h3></div>
+      <div class="card-p">
+        <div class="bars">
+          ${S.trend.map((v,i)=>`<div class="b"><i style="height:${Math.round(v/mx*100)}%"></i>
+            <span>${['Sa','Su','Mo','Tu','We','Th','Fr'][i]}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="cardhead"><h3>Recent activity</h3></div>
+      <div class="card-p" style="padding-top:6px">
+        ${feed.map(f=>`
+          <div style="display:flex;gap:9px;align-items:center;padding:7px 0;font-size:13px">
+            ${tag(f.st)}
+            <div style="flex:1;min-width:0">
+              <span class="ref">${f.ref}</span>
+              <span style="color:var(--text-dim)"> · ${esc(f.who)}</span>
+            </div>
+            <span style="font-size:11.5px;color:var(--text-faint)">${esc(f.when)}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:14px"><span class="ic">ℹ</span>
+  <div>This feed reads from <b>request_status_events</b> — the same append-only table that draws the
+  victim's timeline. One write, three readers.</div></div>`;
+}
+
+function aUsers(){
+  const pv = S.pendingVolunteer;
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">User management</div>
+    <div class="sub">Approve volunteers before they can claim requests.</div>
+  </div><input class="ctl" style="max-width:230px" placeholder="Search users…"></div>
+
+  ${pv ? `<div class="card card-p" style="border-left:3px solid var(--high);margin-bottom:14px">
+    <div style="display:flex;gap:13px;align-items:center;flex-wrap:wrap">
+      <div class="av" style="background:var(--high-soft);color:var(--high)">M</div>
+      <div style="flex:1;min-width:170px">
+        <div style="font-weight:650;font-size:14.5px">${esc(pv.name)} ${tag('PENDING')}</div>
+        <div class="sub" style="margin:2px 0 0">${esc(pv.email)} · ${pv.district} · applied ${pv.applied}</div>
+        <div class="sub" style="margin:2px 0 0">Skills: ${pv.skills.join(', ')}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="rejectVol()">Reject</button>
+        <button class="btn pri" onclick="approveVol()">Approve volunteer</button>
+      </div>
+    </div>
+  </div>` : ''}
+
+  <div class="card tbl-wrap"><table>
+    <thead><tr><th>Name</th><th>Role</th><th>District</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <tr><td><b>Divya Nair</b><div class="sub" style="margin:0;font-size:12px">divya@drms.local</div></td>
+        <td>Admin</td><td>—</td><td>${tag('APPROVED')}</td>
+        <td><button class="btn sm" onclick="selfDeactivate()">Deactivate</button></td></tr>
+      <tr><td><b>Arun Kumar</b><div class="sub" style="margin:0;font-size:12px">arun.k@example.com</div></td>
+        <td>Volunteer</td><td>Ernakulam</td><td>${tag('APPROVED')}</td>
+        <td><button class="btn sm">Edit</button></td></tr>
+      <tr><td><b>Priya Menon</b><div class="sub" style="margin:0;font-size:12px">priya.m@example.com</div></td>
+        <td>Victim</td><td>Ernakulam</td><td>${tag('APPROVED')}</td>
+        <td><button class="btn sm">Edit</button></td></tr>
+    </tbody></table></div>
+
+  <div class="note" style="margin-top:14px"><span class="ic">✱</span>
+  <div><b>Try "Deactivate" on your own admin account.</b> Guardrails block it — you cannot delete
+  yourself or remove the last admin.</div></div>`;
+}
+function approveVol(){
+  S.pendingVolunteer = null;
+  toast('Volunteer approved','Meera Thomas can now claim requests.','good'); render();
+}
+function rejectVol(){ S.pendingVolunteer = null; toast('Application rejected','Meera Thomas was not approved.'); render(); }
+function selfDeactivate(){ toast('Blocked','You cannot deactivate your own admin account.','bad'); }
+
+function aReqs(){
+  const f = aReqs.filter || 'ALL';
+  const rs = f==='ALL' ? S.requests : S.requests.filter(r=>r.status===f);
+  const counts = {}; S.requests.forEach(r=>counts[r.status]=(counts[r.status]||0)+1);
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">All requests</div>
+    <div class="sub">Every request across the active disaster event.</div>
+  </div><button class="btn">⤓ Export CSV</button></div>
+
+  <div class="pills">
+    ${['ALL','SUBMITTED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED'].map(k=>`
+      <button class="pill-f" aria-pressed="${f===k}" onclick="aReqs.filter='${k}';render()">
+        ${nice(k)} <span class="c">${k==='ALL'?S.requests.length:(counts[k]||0)}</span></button>`).join('')}
+  </div>
+
+  <div class="card tbl-wrap"><table>
+    <thead><tr><th>Reference</th><th>Submitted by</th><th>Type</th><th>Urgency</th><th>Status</th><th>Assigned to</th></tr></thead>
+    <tbody>${rs.map(r=>`<tr>
+      <td class="ref">${r.ref}</td>
+      <td>${esc(r.by)}</td>
+      <td>${esc(typeLabel(r.type))}</td>
+      <td>${tag(r.urgency)}</td>
+      <td>${tag(r.status)}</td>
+      <td>${r.assignee?esc(r.assignee):'<span style="color:var(--text-faint)">—</span>'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+function aEvents(){
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Disaster events</div>
+    <div class="sub">Status is derived from the dates in SQL, never stored.</div>
+  </div><button class="btn pri">✚ New event</button></div>
+
+  <div class="card tbl-wrap"><table>
+    <thead><tr><th>Event</th><th>District</th><th>Severity</th><th>Period</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><b>Kerala Floods 2025</b></td><td>Ernakulam</td><td>SEVERE</td>
+        <td>15 Aug 2026 — ongoing</td><td>${tag('ACTIVE')}</td></tr>
+      <tr><td><b>Pre-Monsoon Preparedness</b></td><td>Kozhikode</td><td>MODERATE</td>
+        <td>01 Oct — 05 Oct 2026</td><td>${tag('UPCOMING')}</td></tr>
+      <tr><td><b>Cyclone Remal Response</b></td><td>Kannur</td><td>SEVERE</td>
+        <td>26 May — 10 Jun 2026</td><td>${tag('PAST')}</td></tr>
+      <tr><td><b>Uttarakhand Landslide Relief</b></td><td>Wayanad</td><td>HIGH</td>
+        <td>20 Jul — 05 Aug 2026</td><td>${tag('PAST')}</td></tr>
+    </tbody></table></div>
+
+  <div class="note" style="margin-top:14px"><span class="ic">ℹ</span>
+  <div>The original mock data <b>stored</b> status and contradicted itself — an event dated 2024 was
+  marked "Upcoming". Deriving it from <code>start_date</code>/<code>end_date</code> makes that impossible.</div></div>`;
+}
+
+function aReports(){
+  const byType = {};
+  S.requests.forEach(r=>{
+    byType[r.type] = byType[r.type] || {SUBMITTED:0,ASSIGNED:0,IN_PROGRESS:0,COMPLETED:0,CANCELLED:0};
+    byType[r.type][r.status]++;
+  });
+  return `
+  <div class="pagehead"><div class="sp">
+    <div class="h1">Reports</div>
+    <div class="sub">Help request summary by type and status.</div>
+  </div><button class="btn pri">⤓ Download CSV</button></div>
+
+  <div class="card tbl-wrap"><table>
+    <thead><tr><th>Type</th><th>Submitted</th><th>Assigned</th><th>In progress</th><th>Completed</th><th>Cancelled</th><th>Total</th></tr></thead>
+    <tbody>${Object.entries(byType).map(([t,c])=>{
+      const tot = Object.values(c).reduce((a,b)=>a+b,0);
+      return `<tr><td><b>${esc(typeLabel(t))}</b></td>
+        <td>${c.SUBMITTED}</td><td>${c.ASSIGNED}</td><td>${c.IN_PROGRESS}</td>
+        <td>${c.COMPLETED}</td><td>${c.CANCELLED}</td><td><b>${tot}</b></td></tr>`;
+    }).join('')}</tbody></table></div>
+
+  <div class="note" style="margin-top:14px"><span class="ic">ℹ</span>
+  <div>One <code>GROUP BY type, status</code> — the query an examiner asks to see. This is why the
+  relational model beat a document store for this project.</div></div>`;
+}
+
+function profile(){
+  const u = me();
+  return `
+  <div class="pagehead"><div class="sp"><div class="h1">My profile</div>
+  <div class="sub">Your account details.</div></div></div>
+  <div class="card card-p" style="max-width:520px">
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:18px">
+      <div class="av" style="width:52px;height:52px;font-size:19px">${u.initials}</div>
+      <div><div style="font-size:17px;font-weight:650">${esc(u.name)}</div>
+        <div class="sub" style="margin:1px 0 0">${u.role} · ${u.district}</div></div>
+    </div>
+    <div class="field"><label>Full name</label><input class="ctl" value="${esc(u.name)}"></div>
+    <div class="field"><label>Phone</label><input class="ctl" value="${u.phone}"></div>
+    <div class="field"><label>District</label><input class="ctl" value="${u.district}"></div>
+    <button class="btn pri">Save changes</button>
+  </div>`;
+}
+
+function forbidden(){
+  return `<div class="forbidden">
+    <div class="code">403</div>
+    <div class="h1" style="margin-top:9px">Forbidden</div>
+    <div class="sub">You do not have permission to view this page.</div>
+    <div class="note" style="margin-top:20px;text-align:left"><span class="ic">🔒</span>
+    <div>You reached this by typing an admin URL as a <b>victim</b>. The hidden sidebar is UX;
+    <b>this</b> is the security. <code>requireAuth</code> is mounted on the whole <code>/api/v1</code>
+    router with an explicit public allowlist, so a route nobody remembered to protect fails closed.</div></div>
+    <button class="btn pri" style="margin-top:18px" onclick="go(HOME[me().role])">← Back to safety</button>
+  </div>`;
+}
+
+// ============================================================
+//  SCRIPTED DEMOS
+// ============================================================
+function demoRace(){
+  if(S.me!=='arun'){ switchRole('arun'); }
+  route='vol-pool'; render();
+  const target = pool().find(r=>r.urgency==='CRITICAL');
+  if(!target){ toast('Nothing to race for','No unclaimed critical request left. Hit Reset.','bad'); return; }
+  modal(`
+    <div class="hd"><h3>The claim race</h3><button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+    <div class="bd">
+      <div class="sub" style="margin-bottom:14px">Two volunteers are looking at
+      <span class="ref">${target.ref}</span> at the same moment. Both press Accept within a second.</div>
+      <div style="display:flex;gap:11px">
+        <button class="btn pri" style="flex:1" onclick="raceGo('${target.ref}','Arun Kumar')">
+          Arun presses Accept</button>
+        <button class="btn" style="flex:1" onclick="raceGo('${target.ref}','Meera Thomas')">
+          Meera presses Accept</button>
+      </div>
+      <div class="note" style="margin-top:15px"><span class="ic">✱</span>
+      <div>Press <b>both</b>, one after the other. Exactly one wins — enforced by a
+      <code>UNIQUE</code> index on a generated column, not by an if-statement.</div></div>
+    </div>`);
+}
+function raceGo(ref, who){
+  const r = S.requests.find(x=>x.ref===ref);
+  if(r.status !== 'SUBMITTED'){
+    toast('409 ALREADY_CLAIMED', 'Already accepted by ' + r.assignee.split(' ')[0] + '.', 'bad');
+    closeModal();
+    setTimeout(()=>showRaceProof(r, who), 500);
+    return;
+  }
+  r.status='ASSIGNED'; r.assignee=who; r.tl.push(['ASSIGNED',who,'20 Sep, now']);
+  raceDone = true;
+  notify('Volunteer assigned', who + ' has accepted ' + ref + '.');
+  toast('201 ACCEPTED', who + ' won the race.', 'good');
+  render();
+  demoRace.again = ref;
+  modal(`
+    <div class="hd"><h3>${esc(who)} won</h3><button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+    <div class="bd">
+      <div class="sub" style="margin-bottom:13px">Now press the other one and watch it lose.</div>
+      <button class="btn" style="width:100%" onclick="raceGo('${ref}','${who==='Arun Kumar'?'Meera Thomas':'Arun Kumar'}')">
+        ${who==='Arun Kumar'?'Meera':'Arun'} presses Accept</button>
+    </div>`);
+}
+function showRaceProof(r, loser){
+  modal(`
+    <div class="hd"><h3>What the database did</h3><button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+    <div class="bd">
+      <div class="sub" style="margin-bottom:13px">${esc(loser)} got a clean 409. Here is why it is
+      impossible to get two:</div>
+      <pre style="background:var(--surface-2);padding:13px;border-radius:7px;font-family:var(--mono);
+                  font-size:11.5px;overflow-x:auto;line-height:1.55">active_help_request_id BIGINT UNSIGNED
+  GENERATED ALWAYS AS (
+    CASE WHEN status IN ('ASSIGNED','IN_PROGRESS',
+                         'AWAITING_CONFIRMATION')
+         THEN help_request_id ELSE NULL END
+  ) STORED,
+UNIQUE KEY uq_one_active_assignment (active_help_request_id)</pre>
+      <div class="note" style="margin-top:14px"><span class="ic">ℹ</span>
+      <div>MySQL has <b>no partial indexes</b>. So the column is <code>NULL</code> unless the assignment
+      is live, and MySQL treats <code>NULL</code>s in a UNIQUE index as <b>distinct</b> — unlimited closed
+      assignments can coexist with at most one open one. The rule lives in the database, so no code path
+      can bypass it.</div></div>
+      <div style="margin-top:13px;font-family:var(--mono);font-size:11.5px;background:var(--surface-2);
+                  padding:11px;border-radius:7px">
+        $ node scripts/race-test.mjs<br>
+        <span style="color:var(--ok)">1 × 201 ACCEPTED</span><br>
+        <span style="color:var(--crit)">9 × 409 ALREADY_CLAIMED</span>
+      </div>
+    </div>`);
+}
+function demoForbidden(){
+  if(S.me!=='priya') switchRole('priya');
+  route='forbidden'; render();
+  toast('403 Forbidden','A victim tried to open /admin/user-management.','bad');
+}
+function openBell(){
+  const items = S.notes;
+  modal(`
+    <div class="hd"><h3>Notifications</h3><button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+    <div class="bd" style="padding:0">
+      ${items.length ? items.map(n=>`
+        <div style="padding:13px 18px;border-bottom:1px solid var(--border);
+                    ${n.read?'':'background:var(--brand-soft)'}">
+          <div style="font-size:13.5px;font-weight:650">${esc(n.t)}</div>
+          <div class="sub" style="margin:2px 0 0">${esc(n.m)}</div>
+          <div style="font-size:11.5px;color:var(--text-faint);margin-top:3px">${esc(n.w)}</div>
+        </div>`).join('') : '<div class="empty"><div class="t">Nothing yet</div></div>'}
+    </div>`);
+  S.notes.forEach(n=>n.read=true);
+  document.getElementById('bellct').textContent = 0;
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const isDark = cur ? cur==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+}
+function resetAll(){ S = SEED(); route = HOME[me().role]; draft=null; raceDone=false; closeModal(); render(); toast('Reset','Seed data restored.'); }
+
+// ============================================================
+//  RENDER
+// ============================================================
+function render(){
+  const u = me();
+
+  // role switcher
+  document.getElementById('roles').innerHTML = Object.entries(S.users).map(([k,v])=>
+    `<button aria-pressed="${S.me===k}" onclick="switchRole('${k}')">${v.role[0]+v.role.slice(1).toLowerCase()}</button>`
+  ).join('');
+
+  // sidebar
+  document.getElementById('nav').innerHTML = NAV[u.role].map(([sec,items])=>
+    `<div class="navsec">${sec}</div>` + items.map(([r,ic,lbl])=>
+      `<a href="#" class="${route===r||route.startsWith(r+':')?'on':''}"
+          onclick="event.preventDefault();go('${r}')">
+        <span class="ic">${ic}</span>${lbl}
+        ${r==='vol-pool'&&pool().length?`<span class="pill">${pool().length}</span>`:''}
+      </a>`).join('')
+  ).join('');
+
+  document.getElementById('avatar').textContent = u.initials;
+  document.getElementById('uname').textContent = u.name;
+  document.getElementById('urole').textContent =
+    u.role[0]+u.role.slice(1).toLowerCase() + (u.district!=='—' ? ' · '+u.district : '');
+  document.getElementById('bellct').textContent = unread();
+
+  // view
+  let html;
+  if(route.startsWith('v-req:')) html = vReq(route.slice(6));
+  else html = ({
+    'v-dash':vDash, 'v-new':vNew, 'v-mine':vMine,
+    'vol-dash':volDash, 'vol-pool':volPool, 'vol-mine':volMine,
+    'a-dash':aDash, 'a-users':aUsers, 'a-reqs':aReqs, 'a-events':aEvents, 'a-reports':aReports,
+    'profile':profile, 'forbidden':forbidden,
+  }[route] || vDash)();
+  document.getElementById('view').innerHTML = html;
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+← Back
+Rescue / Evacuation
+
+REQ-2026-000042
+
+CRITICAL
+SUBMITTED
+Status timeline
+
+SUBMITTED
+
+by Fathima Basheer (VICTIM)
+
+23 Sept, 07:21 am
+
+This history is append-only. The application account cannot update or delete these rows — the database refuses it.
+
+Details
+Type
+Rescue / Evacuation
+Urgency
+CRITICAL
+Location
+Chengamanad, near the canal
+District
+Ernakulam
+People
+6
+Submitted
+23 Sept, 07:21 am
+Event
+Kerala Floods 2026
+
+Six people including two children stranded on the first floor. Water still rising.
+
+Person requesting help
+
+Fathima Basheer
+
++91 98470 33567
+
+© 2026 DisasterAid — Kerala Relief Network

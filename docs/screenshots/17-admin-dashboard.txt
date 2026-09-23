@@ -1,0 +1,129 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+Operations dashboard
+
+Live figures, computed from current data.
+
+OPEN REQUESTS
+
+10
+
+awaiting or in progress
+
+CRITICAL UNASSIGNED
+
+2
+
+need dispatch now
+
+RESOLVED
+
+8
+
+in the last 7 days
+
+VOLUNTEERS ONLINE
+
+2
+
+active in the last 5 min
+
+Requests, last 7 days
+2
+Th
+2
+Fr
+1
+Sa
+1
+Su
+3
+Mo
+3
+Tu
+6
+We
+
+One GROUP BY DATE(submitted_at) over real rows.
+
+Recent activity
+SUBMITTED
+REQ-2026-000046 · Rajesh Pillai
+1 hr ago
+SUBMITTED
+REQ-2026-000045 · Anita Joseph
+2 hrs ago
+SUBMITTED
+REQ-2026-000044 · Priya Menon
+2 hrs ago
+SUBMITTED
+REQ-2026-000043 · Suresh Varma
+3 hrs ago
+SUBMITTED
+REQ-2026-000042 · Fathima Basheer
+4 hrs ago
+SUBMITTED
+REQ-2026-000041 · Rajesh Pillai
+5 hrs ago
+ASSIGNED
+REQ-2026-000036 · Divya Nair
+19 hrs ago
+ASSIGNED
+REQ-2026-000035 · Arun Kumar
+20 hrs ago
+COMPLETED
+REQ-2026-000027 · Rahul Varghese
+22 hrs ago
+IN PROGRESS
+REQ-2026-000027 · Rahul Varghese
+1 day ago
+ASSIGNED
+REQ-2026-000027 · Rahul Varghese
+1 day ago
+SUBMITTED
+REQ-2026-000035 · Priya Menon
+1 day ago
+This feed reads request_status_events — the same append-only table that draws each victim's timeline and serves as the audit trail. One write, three readers.
+Manage requests
+Approve volunteers
+Reports
+
+© 2026 DisasterAid — Kerala Relief Network

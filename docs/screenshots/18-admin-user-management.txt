@@ -1,0 +1,140 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+User management
+
+Approve volunteers before they can accept requests.
+
+Awaiting approval (1)
+M
+
+Meera Thomas Pending
+
+meera@drms.local · Ernakulam
+
+Applied 5 days ago
+
+Reject
+Approve volunteer
+
+Open self-registration would otherwise hand any stranger a geolocated list of isolated households with contact numbers.
+
+All
+ADMIN
+1
+VOLUNTEER
+4
+VICTIM
+5
+NAME	ROLE	DISTRICT	STATUS	ACTIVITY	
+
+
+Meera Thomas
+
+meera@drms.local
+
+	VOLUNTEER	Ernakulam	PENDING	0 completed	Deactivate
+
+
+Anita Joseph
+
+anita@drms.local
+
+	VICTIM	Thrissur	Active	—	Deactivate
+
+
+Suresh Varma
+
+suresh@drms.local
+
+	VICTIM	Ernakulam	Active	—	Deactivate
+
+
+Fathima Basheer
+
+fathima@drms.local
+
+	VICTIM	Ernakulam	Active	—	Deactivate
+
+
+Rajesh Pillai
+
+rajesh@drms.local
+
+	VICTIM	Ernakulam	Active	—	Deactivate
+
+
+Priya Menon
+
+priya@drms.local
+
+	VICTIM	Ernakulam	Active	—	Deactivate
+
+
+Rahul Varghese
+
+rahul@drms.local
+
+	VOLUNTEER	Thrissur	APPROVED	2 completed · ★ 5	Deactivate
+
+
+Sneha Raj
+
+sneha@drms.local
+
+	VOLUNTEER	Ernakulam	APPROVED	3 completed · ★ 4.5	Deactivate
+
+
+Arun Kumar
+
+arun@drms.local
+
+	VOLUNTEER	Ernakulam	APPROVED	3 completed · ★ 4.67	Deactivate
+
+
+Divya Nair
+
+admin@drms.local
+
+	ADMIN	Ernakulam	Active	—	Deactivate
+
+Try deactivating your own account, or the last remaining administrator — both are refused by the server.
+
+© 2026 DisasterAid — Kerala Relief Network

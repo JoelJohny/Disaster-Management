@@ -1,0 +1,412 @@
+// db/schema.prisma — DRMS, MySQL 8.0.16+
+// STATUS OF THIS FILE: it is the MODEL OF RECORD for the ER diagram and for the report's
+// Table Structures chapter. It is NOT the runtime data-access layer: Prisma is cut from the
+// build (scope decision). db/schema.sql is executable truth; this file is kept in sync by
+// `npx prisma db pull` against the live mysql:8.0 container and is used for
+// `npx prisma-erd-generator` / MySQL Workbench cross-checking.
+// Prisma cannot express: STORED generated columns, CHECK constraints, ON UPDATE
+// CURRENT_TIMESTAMP, spatial types, GRANTs, triggers. Those live in rawSqlSupplements.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") // mysql://drms_app:drms_app@127.0.0.1:3306/drms
+}
+
+// ---------------------------------------------------------------- enums
+// MySQL ENUM is per-column, not a reusable type. Prisma inlines each of these into every
+// column that uses it. ORDER IS SEMANTIC: MySQL sorts ENUM by declaration ordinal, so
+// `ORDER BY urgency DESC` yields CRITICAL > HIGH > MEDIUM > LOW with no CASE expression.
+
+enum Role {
+  ADMIN
+  VOLUNTEER
+  VICTIM
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Urgency {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequestStatus {
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  IN_PROGRESS
+  AWAITING_CONFIRMATION
+  COMPLETED
+  RELEASED
+}
+
+enum RequestSource {
+  WEB
+  SMS
+  IVR
+}
+
+enum LocationSource {
+  HOME_POINT
+  DISTRICT_CENTROID
+  FIELD_REPORTED
+  ADMIN_ENTERED
+}
+
+enum DisasterType {
+  FLOOD
+  CYCLONE
+  LANDSLIDE
+  EARTHQUAKE
+  FIRE
+  DROUGHT
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MODERATE
+  SEVERE
+  CATASTROPHIC
+}
+
+enum ShelterStatus {
+  OPEN
+  FULL
+  CLOSED
+}
+
+enum NotificationType {
+  REQUEST_SUBMITTED
+  REQUEST_ASSIGNED
+  REQUEST_STATUS_CHANGED
+  REQUEST_COMPLETED
+  FEEDBACK_RECEIVED
+  VOLUNTEER_APPROVED
+}
+
+enum KeralaDistrict {
+  THIRUVANANTHAPURAM
+  KOLLAM
+  PATHANAMTHITTA
+  ALAPPUZHA
+  KOTTAYAM
+  IDUKKI
+  ERNAKULAM
+  THRISSUR
+  PALAKKAD
+  MALAPPURAM
+  KOZHIKODE
+  WAYANAD
+  KANNUR
+  KASARAGOD
+}
+
+// ---------------------------------------------------------------- 1. users
+
+model User {
+  id              BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  email           String          @unique(map: "uq_users_email") @db.VarChar(191)
+  passwordHash    String          @map("password_hash") @db.Char(60)
+  firstName       String          @map("first_name") @db.VarChar(60)
+  lastName        String          @map("last_name") @db.VarChar(60)
+  phone           String?         @unique(map: "uq_users_phone") @db.VarChar(20)
+  role            Role            @default(VICTIM)
+  status          UserStatus      @default(ACTIVE)
+  homeDistrict    KeralaDistrict? @map("home_district")
+  homeLat         Decimal?        @map("home_lat") @db.Decimal(9, 6)
+  homeLng         Decimal?        @map("home_lng") @db.Decimal(9, 6)
+  tokenVersion    Int             @default(0) @map("token_version") @db.UnsignedInt
+  termsAcceptedAt DateTime?       @map("terms_accepted_at") @db.DateTime(3)
+  termsVersion    String?         @map("terms_version") @db.VarChar(20)
+  lastLoginAt     DateTime?       @map("last_login_at") @db.DateTime(3)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  volunteerProfile   VolunteerProfile?  @relation("ProfileOwner")
+  approvalsGranted   VolunteerProfile[] @relation("ProfileApprover")
+  helpRequests       HelpRequest[]      @relation("RequestSubmitter")
+  assignmentsTaken   Assignment[]       @relation("AssignmentVolunteer")
+  assignmentsMade    Assignment[]       @relation("AssignmentAssigner")
+  statusEvents       RequestStatusEvent[] @relation("StatusEventActor")
+  feedbackGiven      Feedback[]         @relation("FeedbackAuthor")
+  feedbackReceived   Feedback[]         @relation("FeedbackVolunteer")
+  notifications      Notification[]     @relation("NotificationRecipient")
+  disasterEvents     DisasterEvent[]    @relation("EventCreator")
+
+  @@index([role, status], map: "ix_users_role_status")
+  @@index([lastName, firstName], map: "ix_users_name")
+  @@index([createdAt], map: "ix_users_created_at")
+  @@map("users")
+}
+
+// ---------------------------------------------------------------- 2. volunteer_profiles
+
+model VolunteerProfile {
+  userId           BigInt         @id @map("user_id") @db.UnsignedBigInt
+  approvalStatus   ApprovalStatus @default(PENDING) @map("approval_status")
+  approvedByUserId BigInt?        @map("approved_by_user_id") @db.UnsignedBigInt
+  approvedAt       DateTime?      @map("approved_at") @db.DateTime(3)
+  rejectionReason  String?        @map("rejection_reason") @db.VarChar(255)
+  organisation     String?        @db.VarChar(120)
+  serviceRadiusKm  Int            @default(15) @map("service_radius_km") @db.UnsignedSmallInt
+  ratingAvg        Decimal?       @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount      Int            @default(0) @map("rating_count") @db.UnsignedInt
+  completedCount   Int            @default(0) @map("completed_count") @db.UnsignedInt
+  hoursLogged      Decimal        @default(0) @map("hours_logged") @db.Decimal(7, 2)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  user       User  @relation("ProfileOwner", fields: [userId], references: [id], onDelete: Cascade, map: "fk_vp_user")
+  approvedBy User? @relation("ProfileApprover", fields: [approvedByUserId], references: [id], onDelete: SetNull, map: "fk_vp_approver")
+
+  @@index([approvalStatus], map: "ix_vp_approval_status")
+  @@index([approvedByUserId], map: "ix_vp_approver")
+  @@map("volunteer_profiles")
+}
+
+// ---------------------------------------------------------------- 3. request_types
+
+model RequestType {
+  id        Int     @id @default(autoincrement()) @db.UnsignedSmallInt
+  code      String  @unique(map: "uq_request_types_code") @db.VarChar(20)
+  label     String  @db.VarChar(60)
+  iconKey   String  @map("icon_key") @db.VarChar(40)
+  colorKey  String  @map("color_key") @db.VarChar(20)
+  sortOrder Int     @map("sort_order") @db.UnsignedTinyInt
+  isActive  Boolean @default(true) @map("is_active")
+
+  helpRequests HelpRequest[]
+
+  @@index([isActive, sortOrder], map: "ix_request_types_active_sort")
+  @@map("request_types")
+}
+
+// ---------------------------------------------------------------- 4. disaster_events
+// status (ACTIVE|UPCOMING|PAST) is DERIVED in SQL from start_date/end_date. Never stored.
+
+model DisasterEvent {
+  id              BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  name            String          @db.VarChar(120)
+  type            DisasterType
+  severity        Severity
+  district        KeralaDistrict?
+  locationText    String          @map("location_text") @db.VarChar(120)
+  centerLat       Decimal         @map("center_lat") @db.Decimal(9, 6)
+  centerLng       Decimal         @map("center_lng") @db.Decimal(9, 6)
+  radiusKm        Int             @default(25) @map("radius_km") @db.UnsignedSmallInt
+  helplineNumber  String?         @map("helpline_number") @db.VarChar(20)
+  description     String?         @db.Text
+  startDate       DateTime        @map("start_date") @db.DateTime(3)
+  endDate         DateTime?       @map("end_date") @db.DateTime(3)
+  createdByUserId BigInt          @map("created_by_user_id") @db.UnsignedBigInt
+  createdAt       DateTime        @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  createdBy    User          @relation("EventCreator", fields: [createdByUserId], references: [id], onDelete: Restrict, map: "fk_de_creator")
+  helpRequests HelpRequest[]
+  shelters     Shelter[]
+
+  @@index([startDate, endDate], map: "ix_de_dates")
+  @@index([createdByUserId], map: "ix_de_creator")
+  @@map("disaster_events")
+}
+
+// ---------------------------------------------------------------- 5. shelters
+
+model Shelter {
+  id               BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  name             String         @db.VarChar(120)
+  district         KeralaDistrict
+  addressText      String         @map("address_text") @db.VarChar(200)
+  lat              Decimal        @db.Decimal(9, 6)
+  lng              Decimal        @db.Decimal(9, 6)
+  capacity         Int            @db.UnsignedSmallInt
+  currentOccupancy Int            @default(0) @map("current_occupancy") @db.UnsignedSmallInt
+  status           ShelterStatus  @default(OPEN)
+  contactPhone     String?        @map("contact_phone") @db.VarChar(20)
+  disasterEventId  BigInt?        @map("disaster_event_id") @db.UnsignedBigInt
+  createdAt        DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  disasterEvent DisasterEvent? @relation(fields: [disasterEventId], references: [id], onDelete: SetNull, map: "fk_sh_event")
+
+  @@index([district, status], map: "ix_sh_district_status")
+  @@index([disasterEventId], map: "ix_sh_event")
+  @@map("shelters")
+}
+
+// ---------------------------------------------------------------- 6. help_requests
+// THE canonical shape. Merges the four incompatible frontend declarations.
+// NOT stored, derived at read time: reference (CONCAT), timeAgo, distanceKm
+// (ST_Distance_Sphere), icon/colour (request_types), assignedTo + progress
+// (LEFT JOIN on the active assignment).
+
+model HelpRequest {
+  id                BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  submittedByUserId BigInt         @map("submitted_by_user_id") @db.UnsignedBigInt
+  requestTypeId     Int            @map("request_type_id") @db.UnsignedSmallInt
+  disasterEventId   BigInt?        @map("disaster_event_id") @db.UnsignedBigInt
+  urgency           Urgency        @default(MEDIUM)
+  status            RequestStatus  @default(SUBMITTED)
+  district          KeralaDistrict
+  locationText      String         @map("location_text") @db.VarChar(200)
+  lat               Decimal        @db.Decimal(9, 6)
+  lng               Decimal        @db.Decimal(9, 6)
+  locationSource    LocationSource @default(DISTRICT_CENTROID) @map("location_source")
+  peopleCount       Int            @map("people_count") @db.UnsignedSmallInt
+  description       String         @db.Text
+  contactPhone      String?        @map("contact_phone") @db.VarChar(20)
+  contactEmail      String?        @map("contact_email") @db.VarChar(191)
+  source            RequestSource  @default(WEB)
+  cancelReason      String?        @map("cancel_reason") @db.VarChar(255)
+  submittedAt       DateTime       @default(now()) @map("submitted_at") @db.DateTime(3)
+  firstAssignedAt   DateTime?      @map("first_assigned_at") @db.DateTime(3)
+  completedAt       DateTime?      @map("completed_at") @db.DateTime(3)
+  cancelledAt       DateTime?      @map("cancelled_at") @db.DateTime(3)
+  updatedAt         DateTime       @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  submittedBy   User                 @relation("RequestSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict, map: "fk_hr_submitter")
+  requestType   RequestType          @relation(fields: [requestTypeId], references: [id], onDelete: Restrict, map: "fk_hr_type")
+  disasterEvent DisasterEvent?       @relation(fields: [disasterEventId], references: [id], onDelete: SetNull, map: "fk_hr_event")
+  assignments   Assignment[]
+  statusEvents  RequestStatusEvent[]
+  feedback      Feedback?
+  notifications Notification[]
+
+  @@index([status, submittedAt(sort: Desc)], map: "ix_hr_status_submitted")
+  @@index([submittedByUserId, submittedAt(sort: Desc)], map: "ix_hr_submitter_submitted")
+  @@index([disasterEventId, status], map: "ix_hr_event_status")
+  @@index([requestTypeId, status], map: "ix_hr_type_status")
+  @@index([district, status], map: "ix_hr_district_status")
+  @@index([submittedAt], map: "ix_hr_submitted_at")
+  @@index([completedAt], map: "ix_hr_completed_at")
+  @@map("help_requests")
+}
+
+// ---------------------------------------------------------------- 7. request_status_events
+// Append-only. Drives the detail-screen timeline, the admin activity feed and the
+// report. Application DB user is granted INSERT + SELECT only (see raw SQL).
+
+model RequestStatusEvent {
+  id            BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  helpRequestId BigInt         @map("help_request_id") @db.UnsignedBigInt
+  fromStatus    RequestStatus? @map("from_status")
+  toStatus      RequestStatus  @map("to_status")
+  actorUserId   BigInt?        @map("actor_user_id") @db.UnsignedBigInt
+  actorRole     Role?          @map("actor_role")
+  note          String?        @db.VarChar(255)
+  occurredAt    DateTime       @default(now()) @map("occurred_at") @db.DateTime(3)
+
+  helpRequest HelpRequest @relation(fields: [helpRequestId], references: [id], onDelete: Cascade, map: "fk_rse_request")
+  actor       User?       @relation("StatusEventActor", fields: [actorUserId], references: [id], onDelete: SetNull, map: "fk_rse_actor")
+
+  @@index([helpRequestId, occurredAt], map: "ix_rse_request_time")
+  @@index([occurredAt(sort: Desc)], map: "ix_rse_time")
+  @@index([actorUserId], map: "ix_rse_actor")
+  @@map("request_status_events")
+}
+
+// ---------------------------------------------------------------- 8. assignments
+// THE DOUBLE-DISPATCH GUARANTEE LIVES HERE.
+// active_help_request_id is a STORED GENERATED column that Prisma cannot express; it is
+// declared in db/schema.sql as:
+//   active_help_request_id BIGINT UNSIGNED
+//     GENERATED ALWAYS AS (CASE WHEN status IN ('ASSIGNED','IN_PROGRESS','AWAITING_CONFIRMATION')
+//                          THEN help_request_id ELSE NULL END) STORED
+// plus UNIQUE KEY uq_one_active_assignment (active_help_request_id).
+// NEVER write to this field from application code (MySQL error 3105).
+
+model Assignment {
+  id                     BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  helpRequestId          BigInt           @map("help_request_id") @db.UnsignedBigInt
+  volunteerUserId        BigInt           @map("volunteer_user_id") @db.UnsignedBigInt
+  assignedByUserId       BigInt?          @map("assigned_by_user_id") @db.UnsignedBigInt
+  status                 AssignmentStatus @default(ASSIGNED)
+  activeHelpRequestId    BigInt?          @unique(map: "uq_one_active_assignment") @map("active_help_request_id") @db.UnsignedBigInt
+  progressPct            Int              @default(0) @map("progress_pct") @db.UnsignedTinyInt
+  hoursLogged            Decimal?         @map("hours_logged") @db.Decimal(5, 2)
+  completionNotes        String?          @map("completion_notes") @db.VarChar(500)
+  claimedAt              DateTime         @default(now()) @map("claimed_at") @db.DateTime(3)
+  startedAt              DateTime?        @map("started_at") @db.DateTime(3)
+  awaitingConfirmationAt DateTime?        @map("awaiting_confirmation_at") @db.DateTime(3)
+  completedAt            DateTime?        @map("completed_at") @db.DateTime(3)
+  releasedAt             DateTime?        @map("released_at") @db.DateTime(3)
+  updatedAt              DateTime         @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  helpRequest HelpRequest @relation(fields: [helpRequestId], references: [id], onDelete: Restrict, map: "fk_as_request")
+  volunteer   User        @relation("AssignmentVolunteer", fields: [volunteerUserId], references: [id], onDelete: Restrict, map: "fk_as_volunteer")
+  assignedBy  User?       @relation("AssignmentAssigner", fields: [assignedByUserId], references: [id], onDelete: SetNull, map: "fk_as_assigner")
+  feedback    Feedback?
+
+  @@index([volunteerUserId, status], map: "ix_as_volunteer_status")
+  @@index([helpRequestId, claimedAt], map: "ix_as_request_claimed")
+  @@index([completedAt], map: "ix_as_completed_at")
+  @@index([assignedByUserId], map: "ix_as_assigner")
+  @@map("assignments")
+}
+
+// ---------------------------------------------------------------- 9. feedback
+
+model Feedback {
+  id                BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  helpRequestId     BigInt   @unique(map: "uq_feedback_help_request") @map("help_request_id") @db.UnsignedBigInt
+  assignmentId      BigInt?  @unique(map: "uq_feedback_assignment") @map("assignment_id") @db.UnsignedBigInt
+  submittedByUserId BigInt   @map("submitted_by_user_id") @db.UnsignedBigInt
+  volunteerUserId   BigInt?  @map("volunteer_user_id") @db.UnsignedBigInt
+  rating            Int      @db.UnsignedTinyInt
+  comments          String?  @db.Text
+  contactPermission Boolean  @default(false) @map("contact_permission")
+  createdAt         DateTime @default(now()) @map("created_at") @db.DateTime(3)
+
+  helpRequest HelpRequest @relation(fields: [helpRequestId], references: [id], onDelete: Cascade, map: "fk_fb_request")
+  assignment  Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull, map: "fk_fb_assignment")
+  submittedBy User        @relation("FeedbackAuthor", fields: [submittedByUserId], references: [id], onDelete: Restrict, map: "fk_fb_author")
+  volunteer   User?       @relation("FeedbackVolunteer", fields: [volunteerUserId], references: [id], onDelete: SetNull, map: "fk_fb_volunteer")
+
+  @@index([volunteerUserId, rating], map: "ix_fb_volunteer_rating")
+  @@index([submittedByUserId], map: "ix_fb_author")
+  @@index([createdAt], map: "ix_fb_created_at")
+  @@map("feedback")
+}
+
+// ---------------------------------------------------------------- 10. notifications
+
+model Notification {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  recipientUserId BigInt           @map("recipient_user_id") @db.UnsignedBigInt
+  type            NotificationType
+  title           String           @db.VarChar(120)
+  body            String           @db.VarChar(255)
+  helpRequestId   BigInt?          @map("help_request_id") @db.UnsignedBigInt
+  readAt          DateTime?        @map("read_at") @db.DateTime(3)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.DateTime(3)
+
+  recipient   User         @relation("NotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade, map: "fk_nt_recipient")
+  helpRequest HelpRequest? @relation(fields: [helpRequestId], references: [id], onDelete: Cascade, map: "fk_nt_request")
+
+  @@index([recipientUserId, readAt, createdAt(sort: Desc)], map: "ix_nt_recipient_unread")
+  @@index([helpRequestId], map: "ix_nt_request")
+  @@map("notifications")
+}

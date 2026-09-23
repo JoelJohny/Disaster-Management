@@ -1,0 +1,137 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+VOLUNTEER
+
+⌂
+Dashboard
+◎
+Available Requests
+☑
+My Tasks
+
+ACCOUNT
+
+◍
+My Profile
+AK
+
+Arun Kumar
+
+volunteer · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+AK
+My tasks
+
+Requests you have accepted. Move each one along as you work.
+
+Food & Water
+MEDIUM
+
+REQ-2026-000035
+
+Contact
+Priya Menon · +91 98470 11234
+Location
+Desom, Aluva (0.6 km)
+People
+4
+
+Family of four needs dry rations and baby food.
+
+ASSIGNED
+Start this task
+Mark completed
+skips a step
+Release to pool
+View full detail
+Rescue / Evacuation
+HIGH
+
+REQ-2026-000030
+
+Contact
+Suresh Varma · +91 98470 44678
+Location
+Edathala South (4.4 km)
+People
+2
+
+Two elderly people need evacuation before nightfall.
+
+IN PROGRESS
+Complete & log hours
+Release to pool
+View full detail
+Progress
+50%
+25%
+50%
+75%
+Rescue / Evacuation
+CRITICAL
+
+REQ-2026-000022
+
+Contact
+Fathima Basheer · +91 98470 33567
+Location
+Chengamanad (8.2 km)
+People
+5
+
+Evacuation of five from a flooded lane.
+
+COMPLETED
+
+3.5 hours logged
+
+View full detail
+Food & Water
+HIGH
+
+REQ-2026-000020
+
+Contact
+Priya Menon · +91 98470 11234
+Location
+Desom, Aluva (0.6 km)
+People
+4
+
+Drinking water and rations for four.
+
+COMPLETED
+
+2.5 hours logged
+
+View full detail
+Medical Assistance
+CRITICAL
+
+REQ-2026-000021
+
+Contact
+Rajesh Pillai · +91 98470 22456
+Location
+Kunnathunad (14.5 km)
+People
+1
+
+Insulin required urgently.
+
+COMPLETED
+
+1.5 hours logged
+
+View full detail
+Try Mark completed on a task you have not started. The server refuses it — the lifecycle is enforced on the server, not by hiding buttons.
+
+© 2026 DisasterAid — Kerala Relief Network

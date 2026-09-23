@@ -1,0 +1,114 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+Disaster events
+
+A new request is automatically attached to whichever active event covers its location.
+
+✚ New event
+EVENT	DISTRICT	SEVERITY	PERIOD	REQUESTS	STATE
+
+
+Pre-Monsoon Preparedness
+
+Preparedness
+
+	Kozhikode	MODERATE	4 Oct 2026 — 8 Oct 2026	0	UPCOMING
+
+
+Kerala Floods 2026
+
+Flood
+
+	Ernakulam	SEVERE	18 Aug 2026 — ongoing	20	ACTIVE
+
+
+Wayanad Landslide Relief
+
+Landslide
+
+	Wayanad	HIGH	10 Jul 2026 — 25 Jul 2026	0	PAST
+
+
+Cyclone Remal Response
+
+Cyclone
+
+	Kannur	SEVERE	26 May 2026 — 10 Jun 2026	0	PAST
+State is derived, never stored. Upcoming, active and past are calculated from the dates every time this is queried, so a stored value can never contradict them — which is exactly the defect the original mock data had, where an event dated in the past was marked as upcoming.
+New disaster event
+Event name
+Type
+Flood
+Cyclone
+Landslide
+Earthquake
+Preparedness
+Other
+Severity
+Low
+Moderate
+High
+Severe
+District
+— Select —
+Thiruvananthapuram
+Kollam
+Pathanamthitta
+Alappuzha
+Kottayam
+Idukki
+Ernakulam
+Thrissur
+Palakkad
+Malappuram
+Kozhikode
+Wayanad
+Kannur
+Kasaragod
+Radius (km)
+Start date
+End date blank if ongoing
+Helpline
+Description optional
+Cancel
+Create event
+
+© 2026 DisasterAid — Kerala Relief Network

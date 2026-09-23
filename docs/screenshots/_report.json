@@ -1,0 +1,234 @@
+[
+  {
+    "slug": "01-login",
+    "role": "guest",
+    "requested": "/auth/login",
+    "finalUrl": "/auth/login",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 554,
+    "consoleErrors": []
+  },
+  {
+    "slug": "02-register",
+    "role": "guest",
+    "requested": "/auth/register",
+    "finalUrl": "/auth/login?expired=1",
+    "title": "DisasterAid",
+    "redirected": true,
+    "textLength": 596,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ]
+  },
+  {
+    "slug": "03-victim-dashboard",
+    "role": "victim",
+    "requested": "/victim/dashboard",
+    "finalUrl": "/victim/dashboard",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 952,
+    "consoleErrors": []
+  },
+  {
+    "slug": "04-victim-submit-request",
+    "role": "victim",
+    "requested": "/victim/submit-request",
+    "finalUrl": "/victim/submit-request",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 743,
+    "consoleErrors": []
+  },
+  {
+    "slug": "05-victim-my-requests",
+    "role": "victim",
+    "requested": "/victim/my-requests",
+    "finalUrl": "/victim/my-requests",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1015,
+    "consoleErrors": []
+  },
+  {
+    "slug": "06-victim-feedback",
+    "role": "victim",
+    "requested": "/victim/feedback/16",
+    "finalUrl": "/victim/feedback/16",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 590,
+    "consoleErrors": []
+  },
+  {
+    "slug": "07-victim-request-detail",
+    "role": "victim",
+    "requested": "/requests/10",
+    "finalUrl": "/requests/10",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 950,
+    "consoleErrors": []
+  },
+  {
+    "slug": "08-victim-profile",
+    "role": "victim",
+    "requested": "/profile",
+    "finalUrl": "/profile",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 703,
+    "consoleErrors": []
+  },
+  {
+    "slug": "09-forbidden",
+    "role": "victim",
+    "requested": "/dashboard",
+    "finalUrl": "/forbidden",
+    "title": "DisasterAid",
+    "redirected": true,
+    "textLength": 559,
+    "consoleErrors": []
+  },
+  {
+    "slug": "10-not-found",
+    "role": "victim",
+    "requested": "/this-page-does-not-exist",
+    "finalUrl": "/this-page-does-not-exist",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 102,
+    "consoleErrors": []
+  },
+  {
+    "slug": "11-volunteer-dashboard",
+    "role": "volunteer",
+    "requested": "/volunteer/dashboard",
+    "finalUrl": "/volunteer/dashboard",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 808,
+    "consoleErrors": []
+  },
+  {
+    "slug": "12-volunteer-available-tasks",
+    "role": "volunteer",
+    "requested": "/volunteer/available-tasks",
+    "finalUrl": "/volunteer/available-tasks",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 2157,
+    "consoleErrors": []
+  },
+  {
+    "slug": "13-volunteer-my-tasks",
+    "role": "volunteer",
+    "requested": "/volunteer/my-tasks",
+    "finalUrl": "/volunteer/my-tasks",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1603,
+    "consoleErrors": []
+  },
+  {
+    "slug": "14-volunteer-request-detail",
+    "role": "volunteer",
+    "requested": "/requests/9",
+    "finalUrl": "/requests/9",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 968,
+    "consoleErrors": []
+  },
+  {
+    "slug": "15-volunteer-profile",
+    "role": "volunteer",
+    "requested": "/profile",
+    "finalUrl": "/profile",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 721,
+    "consoleErrors": []
+  },
+  {
+    "slug": "16-volunteer-pending-dashboard",
+    "role": "pending",
+    "requested": "/volunteer/dashboard",
+    "finalUrl": "/volunteer/dashboard",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1047,
+    "consoleErrors": []
+  },
+  {
+    "slug": "17-admin-dashboard",
+    "role": "admin",
+    "requested": "/dashboard",
+    "finalUrl": "/dashboard",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1475,
+    "consoleErrors": []
+  },
+  {
+    "slug": "18-admin-user-management",
+    "role": "admin",
+    "requested": "/admin/user-management",
+    "finalUrl": "/admin/user-management",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1589,
+    "consoleErrors": []
+  },
+  {
+    "slug": "19-admin-all-requests",
+    "role": "admin",
+    "requested": "/admin/all-requests",
+    "finalUrl": "/admin/all-requests",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 2235,
+    "consoleErrors": []
+  },
+  {
+    "slug": "20-admin-disaster-management",
+    "role": "admin",
+    "requested": "/admin/disaster-management",
+    "finalUrl": "/admin/disaster-management",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 1083,
+    "consoleErrors": []
+  },
+  {
+    "slug": "21-admin-system-reports",
+    "role": "admin",
+    "requested": "/admin/system-reports",
+    "finalUrl": "/admin/system-reports",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 750,
+    "consoleErrors": []
+  },
+  {
+    "slug": "22-admin-request-detail",
+    "role": "admin",
+    "requested": "/requests/2",
+    "finalUrl": "/requests/2",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 866,
+    "consoleErrors": []
+  },
+  {
+    "slug": "23-admin-profile",
+    "role": "admin",
+    "requested": "/profile",
+    "finalUrl": "/profile",
+    "title": "DisasterAid",
+    "redirected": false,
+    "textLength": 753,
+    "consoleErrors": []
+  }
+]

@@ -1,0 +1,164 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+All requests
+
+Every request across the active relief operation.
+
+ALL
+20
+SUBMITTED
+6
+ASSIGNED
+2
+IN PROGRESS
+2
+COMPLETED
+8
+CANCELLED
+2
+All categories
+Medical Assistance
+Rescue / Evacuation
+Food & Water
+Shelter / Housing
+Other
+All urgencies
+Critical
+High
+Medium
+Low
+REFERENCE	SUBMITTED BY	TYPE	URGENCY	STATUS	ASSIGNED TO	
+REQ-2026-000046	Rajesh Pillai	Other	LOW	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000045	Anita Joseph	Medical Assistance	HIGH	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000044	Priya Menon	Shelter / Housing	HIGH	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000043	Suresh Varma	Food & Water	MEDIUM	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000042	Fathima Basheer	Rescue / Evacuation	CRITICAL	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000041	Rajesh Pillai	Medical Assistance	CRITICAL	SUBMITTED	—	
+Assign
+View
+
+REQ-2026-000035	Priya Menon	Food & Water	MEDIUM	ASSIGNED	Arun Kumar	
+View
+
+REQ-2026-000036	Fathima Basheer	Shelter / Housing	HIGH	ASSIGNED	Sneha Raj	
+View
+
+REQ-2026-000027	Fathima Basheer	Medical Assistance	HIGH	COMPLETED	Rahul Varghese	
+View
+
+REQ-2026-000030	Suresh Varma	Rescue / Evacuation	HIGH	IN PROGRESS	Arun Kumar	
+View
+
+REQ-2026-000026	Rajesh Pillai	Food & Water	MEDIUM	COMPLETED	Rahul Varghese	
+View
+
+REQ-2026-000031	Priya Menon	Medical Assistance	MEDIUM	IN PROGRESS	Rahul Varghese	
+View
+
+REQ-2026-000025	Priya Menon	Other	LOW	COMPLETED	Sneha Raj	
+View
+
+REQ-2026-000024	Anita Joseph	Food & Water	LOW	COMPLETED	Sneha Raj	
+View
+
+REQ-2026-000022	Fathima Basheer	Rescue / Evacuation	CRITICAL	COMPLETED	Arun Kumar	
+View
+
+REQ-2026-000023	Suresh Varma	Shelter / Housing	MEDIUM	COMPLETED	Sneha Raj	
+View
+
+REQ-2026-000020	Priya Menon	Food & Water	HIGH	COMPLETED	Arun Kumar	
+View
+
+REQ-2026-000021	Rajesh Pillai	Medical Assistance	CRITICAL	COMPLETED	Arun Kumar	
+View
+
+REQ-2026-000016	Suresh Varma	Shelter / Housing	LOW	CANCELLED	—	
+View
+
+REQ-2026-000015	Priya Menon	Medical Assistance	HIGH	CANCELLED	—	
+View
+
+Page 1 of 2 · 20 requests
+
+Previous
+Next
+Assign REQ-2026-000046
+
+Other · Kunnathunad
+
+R
+
+Rahul Varghese
+
+Thrissur · 2 completed · ★ 5 · 1 active
+
+S
+
+Sneha Raj
+
+Ernakulam · 3 completed · ★ 4.5 · 1 active
+
+A
+
+Arun Kumar
+
+Ernakulam · 3 completed · ★ 4.67 · 2 active
+
+Cancel
+Assign volunteer
+
+© 2026 DisasterAid — Kerala Relief Network

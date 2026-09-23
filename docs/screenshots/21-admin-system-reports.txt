@@ -1,0 +1,55 @@
+DA
+
+DisasterAid
+
+Kerala Relief Network
+
+OVERVIEW
+
+⌂
+Dashboard
+
+MANAGEMENT
+
+⚇
+User Management
+☰
+All Requests
+◈
+Disaster Events
+
+SYSTEM
+
+▤
+Reports
+
+ACCOUNT
+
+◍
+My Profile
+DN
+
+Divya Nair
+
+admin · Ernakulam
+
+⇥ Sign out
+Kerala Floods 2026 · SEVERE ·
+ACTIVE
+🔔
+DN
+Reports
+
+Help requests by category and status.
+
+⤓ Download CSV
+CATEGORY	SUBMITTED	ASSIGNED	IN PROGRESS	COMPLETED	CANCELLED	TOTAL
+Food & Water	1	1	0	3	0	5
+Medical Assistance	2	0	1	2	1	6
+Other	1	0	0	1	0	2
+Rescue / Evacuation	1	0	1	1	0	3
+Shelter / Housing	1	1	0	1	1	4
+All categories	6	2	2	8	2	20
+One GROUP BY category, status over the requests table. This kind of aggregate is why the relational model was chosen over a document store for this project.
+
+© 2026 DisasterAid — Kerala Relief Network
