@@ -47,7 +47,21 @@ export function createApp() {
 
   // ---- serve the built Angular app from this same process -----------------
   if (env.serveStatic) {
-    const dist = path.resolve(__dirname, '../../frontend/dist/frontend/browser');
+    // __dirname differs between running the sources and running the build:
+    //   tsx        backend/src              → repo root is ../..
+    //   compiled   backend/dist/backend/src → repo root is ../../../..
+    // (tsconfig sets rootDir to the repo root so packages/contracts compiles
+    // too, which nests the output one level deeper than it looks.)
+    // Try both, and let STATIC_DIR override for a deployment that relocates
+    // the bundle. Getting this wrong is silent: the API keeps working and
+    // every page URL 404s.
+    const candidates = [
+      process.env.STATIC_DIR,
+      path.resolve(__dirname, '../../frontend/dist/frontend/browser'),
+      path.resolve(__dirname, '../../../../frontend/dist/frontend/browser'),
+    ].filter((p): p is string => Boolean(p));
+
+    const dist = candidates.find(p => fs.existsSync(p)) ?? candidates[1];
     if (fs.existsSync(dist)) {
       app.use(express.static(dist, { index: false, maxAge: '1h' }));
       // SPA fallback: any non-API path returns index.html so client routing works.
