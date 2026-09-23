@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: drms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: drms
+      MYSQL_USER: drms_app
+      MYSQL_PASSWORD: drms_app
+    # 3307 on the host: port 3306 is commonly taken by a local MySQL install.
+    ports:
+      - "3307:3306"
+    command:
+      - --default-time-zone=+00:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      # Relaxed durability: this is a disposable development database, and it
+      # makes a full reset take seconds rather than minutes. Never use in production.
+      - --innodb-flush-log-at-trx-commit=2
+    volumes:
+      - drms_data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-prootpw"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  adminer:
+    image: adminer:latest
+    container_name: drms-adminer
+    restart: unless-stopped
+    # 8081 on the host: 8080 is taken on this machine.
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+      ADMINER_DESIGN: dracula
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  drms_data:

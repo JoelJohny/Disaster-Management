@@ -1,0 +1,98 @@
+# ============================================================================
+#  DisasterAid — repository-wide ignores
+#
+#  This is an npm-workspaces monorepo, so dependencies and build output appear
+#  at the ROOT as well as inside each workspace. frontend/.gitignore and
+#  backend/.gitignore only cover their own folders; this file covers the rest.
+# ============================================================================
+
+# ---- dependencies ----------------------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+jspm_packages/
+
+# ---- build output ----------------------------------------------------------
+dist/
+build/
+out-tsc/
+tmp/
+*.tsbuildinfo
+
+# Angular's local build cache — 16 MB and entirely regenerable
+.angular/
+
+# ---- environment and secrets ----------------------------------------------
+# Never commit real credentials. .env.example IS committed, as the template.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- logs ------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- test and coverage -----------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+
+# ---- database ---------------------------------------------------------------
+# The MySQL data lives in a named Docker volume, not in the repo. These patterns
+# catch a stray local dump or an accidental bind-mount.
+mysql-data/
+*.sql.bak
+*.dump
+
+# ---- Docker ----------------------------------------------------------------
+# docker-compose.yml IS committed. Local overrides are not.
+docker-compose.override.yml
+
+# ---- deployment ------------------------------------------------------------
+.firebase/
+.vercel/
+.netlify/
+
+# ---- editors and IDEs -------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.history/
+*.sublime-workspace
+*.sublime-project
+
+# ---- operating system -------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---- project documents ------------------------------------------------------
+# Word autosave and lock files from editing the synopsis and report.
+~$*.docx
+~$*.doc
+~$*.xlsx
+~$*.pptx
+
+# ---- coursework documents (private) ----------------------------------------
+# The synopsis and report .docx files are submitted to the university, not
+# published with the source. The folder stays local.
+project file/

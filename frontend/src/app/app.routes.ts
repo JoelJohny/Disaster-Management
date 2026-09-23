@@ -19,7 +19,7 @@ import { UserProfile } from './pages/user-profile/user-profile';
 
 export const routes: Routes = [
   {
-    path: '',
+    path: 'auth',
     component: AuthLayout,
     children: [
       { path: 'login', component: Login },
@@ -30,6 +30,7 @@ export const routes: Routes = [
     path: '',
     component: MainLayout,
     children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       // Common Routes
       { path: 'profile', component: UserProfile },
       { path: 'dashboard', component: Dashboard }, // Generic or Admin Dashboard
@@ -55,5 +56,5 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ]
   },
-  { path: '**', redirectTo: 'login' } // Redirect any unknown paths to login
+  { path: '**', redirectTo: 'auth/login' }
 ];

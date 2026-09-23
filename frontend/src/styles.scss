@@ -6,6 +6,8 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 @use "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   @include mat.theme((
     color: (

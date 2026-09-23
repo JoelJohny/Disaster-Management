@@ -1,20 +1,19 @@
+import { Component, HostListener, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faBell, faUserPlus, faServer, faSignOutAlt ,faBars} from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faBell, faUserPlus, faServer, faSignOutAlt, faBars, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import { Theme } from '../../services/theme'; // Adjust path if needed
 
 
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule,FormsModule,FontAwesomeModule],
+  imports: [CommonModule,FontAwesomeModule],
   templateUrl: './header.html',
   styleUrl: './header.scss'
 })
 export class Header {
- @Input() isMobile = false;
+@Input() isMobile = false;
   @Output() menuToggle = new EventEmitter<void>();
 
   isNotificationsOpen = false;
@@ -27,8 +26,13 @@ export class Header {
   faServer = faServer;
   faSignOutAlt = faSignOutAlt;
   faBars = faBars;
+  faSun = faSun;
+  faMoon = faMoon;
 
-  constructor(private elementRef: ElementRef) { }
+  constructor(
+    private elementRef: ElementRef,
+    public themeService: Theme // Make it public to access in template
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
