@@ -1,62 +1,91 @@
-import { Component } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faTasks, faUsers } from '@fortawesome/free-solid-svg-icons';
-
-interface AssignedRequest {
-  id: string;
-  type: string;
-  location: string;
-  urgency: 'High' | 'Medium' | 'Low';
-  status: 'Assigned' | 'In Progress' | 'Pending Confirmation';
-  dateAccepted: string;
-  peopleCount: number;
-  progress: number; // Percentage (0-100)
-}
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { RequestsStore, type RequestItem } from '../../../core/services/requests.store';
+import { ToastService } from '../../../core/services/toast';
+import { StatePanel } from '../../../shared/state-panel';
+import { STATUS_CLASS, URGENCY_CLASS, label, when } from '../../../shared/ui';
+import type { ApiError } from '../../../core/services/api';
 
 @Component({
   selector: 'app-assigned-tasks',
-  imports: [CommonModule,
-    FontAwesomeModule,
-    NgClass],
+  imports: [FormsModule, RouterLink, StatePanel],
   templateUrl: './assigned-tasks.html',
-  styleUrl: './assigned-tasks.scss'
+  styleUrl: './assigned-tasks.scss',
 })
 export class AssignedTasks {
-// Icon definitions
-  faTasks = faTasks;
-  faUsers = faUsers;
+  readonly store = inject(RequestsStore);
+  private toast = inject(ToastService);
 
-  // Mock data for assigned requests
-  assignedRequests: AssignedRequest[] = [
-    { id: 'REQ-001', type: 'Medical Assistance', location: 'City General Hospital', urgency: 'High', status: 'In Progress', dateAccepted: 'Aug 25, 2025', peopleCount: 1, progress: 50 },
-    { id: 'REQ-015', type: 'Food & Water', location: 'Riverside Camp', urgency: 'Medium', status: 'Assigned', dateAccepted: 'Aug 24, 2025', peopleCount: 12, progress: 10 },
-    { id: 'REQ-023', type: 'Shelter / Housing', location: 'Southside Community Hall', urgency: 'Medium', status: 'Pending Confirmation', dateAccepted: 'Aug 22, 2025', peopleCount: 4, progress: 90 },
-  ];
+  readonly busy = signal<number | null>(null);
 
-  constructor() { }
+  // completion dialog state
+  readonly completing = signal<RequestItem | null>(null);
+  hours = 1;
+  notes = '';
 
-  /**
-   * Returns Tailwind CSS classes for a given urgency level.
-   */
-  getUrgencyColor(urgency: 'High' | 'Medium' | 'Low'): { bgColor: string, textColor: string } {
-    switch (urgency) {
-      case 'High': return { bgColor: 'bg-red-100', textColor: 'text-red-800' };
-      case 'Medium': return { bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' };
-      case 'Low': return { bgColor: 'bg-green-100', textColor: 'text-green-800' };
-      default: return { bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
+  readonly STATUS_CLASS = STATUS_CLASS;
+  readonly URGENCY_CLASS = URGENCY_CLASS;
+  readonly label = label;
+  readonly when = when;
+
+  constructor() { this.load(); }
+
+  load(): void { this.store.load('assigned', { pageSize: 50 }); }
+
+  active(r: RequestItem): boolean {
+    return r.assignment?.status === 'ASSIGNED' || r.assignment?.status === 'IN_PROGRESS';
+  }
+
+  private async act(r: RequestItem, payload: Record<string, unknown>, ok: string): Promise<void> {
+    if (!r.assignment) return;
+    this.busy.set(r.id);
+    try {
+      await this.store.updateAssignment(r.assignment.id, payload);
+      this.toast.success(ok, r.reference);
+      this.load();
+    } catch (e) {
+      const err = e as ApiError;
+      // ILLEGAL_TRANSITION is the server refusing a step the lifecycle forbids.
+      this.toast.error(
+        err.code === 'ILLEGAL_TRANSITION' ? 'Not allowed' : 'Could not update',
+        err.message,
+      );
+    } finally {
+      this.busy.set(null);
     }
   }
 
+  start(r: RequestItem)   { this.act(r, { action: 'START', progressPct: 25 }, 'Task started'); }
+  release(r: RequestItem) { this.act(r, { action: 'RELEASE' }, 'Released back to the pool'); }
+
+  setProgress(r: RequestItem, pct: number) {
+    this.act(r, { action: 'PROGRESS', progressPct: pct }, 'Progress saved');
+  }
+
   /**
-   * Returns Tailwind CSS classes for a given status.
+   * Deliberately offered while the task is still ASSIGNED, so the server can
+   * refuse it. That refusal is the point: the lifecycle is enforced on the
+   * server, not by hiding the button.
    */
-  getStatusColor(status: 'Assigned' | 'In Progress' | 'Pending Confirmation'): { bgColor: string, textColor: string } {
-    switch (status) {
-      case 'Assigned': return { bgColor: 'bg-blue-100', textColor: 'text-blue-800' };
-      case 'In Progress': return { bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' };
-      case 'Pending Confirmation': return { bgColor: 'bg-purple-100', textColor: 'text-purple-800' };
-      default: return { bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
-    }
+  tryIllegalComplete(r: RequestItem) {
+    this.act(r, { action: 'COMPLETE', hoursLogged: 1 }, 'Completed');
+  }
+
+  openComplete(r: RequestItem) {
+    this.completing.set(r);
+    this.hours = 1;
+    this.notes = '';
+  }
+
+  async confirmComplete(): Promise<void> {
+    const r = this.completing();
+    if (!r) return;
+    await this.act(
+      r,
+      { action: 'COMPLETE', hoursLogged: this.hours, completionNotes: this.notes || undefined },
+      'Task completed',
+    );
+    this.completing.set(null);
   }
 }

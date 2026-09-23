@@ -1,79 +1,101 @@
-<!-- 
-  This is a professional page for volunteers to view and accept available help requests.
-
-  Features:
-  - Advanced filtering and sorting controls to help volunteers find relevant tasks.
-  - A placeholder for an interactive map view to visualize request locations.
-  - A responsive grid of request cards with key details like urgency, type, and distance.
-  - Clear calls-to-action on each card.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Available Help Requests</h1>
-    <p class="text-gray-500">Browse open requests and accept a task to help someone in need.</p>
-  </div>
-
-  <!-- Filter & Sort Controls -->
-  <div class="bg-white p-4 rounded-lg shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div class="flex flex-wrap items-center gap-4">
-      <!-- Filter by Type -->
-      <div>
-        <label for="requestType" class="text-sm font-medium text-gray-700 sr-only">Filter by Type</label>
-        <select id="requestType" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          <option>All Types</option>
-          <option>Medical Assistance</option>
-          <option>Food & Water</option>
-          <option>Shelter / Housing</option>
-          <option>Rescue / Evacuation</option>
-        </select>
-      </div>
-      <!-- Sort by -->
-      <div>
-        <label for="sortBy" class="text-sm font-medium text-gray-700 sr-only">Sort by</label>
-        <select id="sortBy" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          <option>Sort by Urgency</option>
-          <option>Sort by Distance</option>
-          <option>Sort by Newest</option>
-        </select>
-      </div>
-    </div>
-    <!-- View Toggle -->
-    <div class="flex items-center border border-gray-300 rounded-md">
-      <button class="p-2 border-r border-gray-300 bg-blue-500 text-white">
-        <fa-icon [icon]="faList" class="w-5 h-5"></fa-icon>
-      </button>
-      <button class="p-2 text-gray-500 hover:bg-gray-100">
-        <fa-icon [icon]="faMapMarkedAlt" class="w-5 h-5"></fa-icon>
-      </button>
-    </div>
-  </div>
-
-  <!-- Requests Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Loop through each request -->
-    <div *ngFor="let request of availableRequests" class="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
-      <div class="p-5">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center">
-            <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full text-white" [ngClass]="request.iconBgColor">
-              <fa-icon [icon]="request.icon" class="text-lg"></fa-icon>
-            </div>
-            <h3 class="ml-3 font-semibold text-gray-800">{{ request.type }}</h3>
-          </div>
-          <span class="text-xs font-bold px-3 py-1 rounded-full" [ngClass]="getUrgencyColor(request.urgency)">
-            {{ request.urgency }}
-          </span>
-        </div>
-        <p class="text-sm text-gray-500 mt-2"><fa-icon [icon]="faMapMarkerAlt" class="mr-2"></fa-icon>{{ request.location }} (~{{ request.distance }} km away)</p>
-        <p class="text-sm text-gray-500 mt-1"><fa-icon [icon]="faUsers" class="mr-2"></fa-icon>{{ request.peopleCount }} people need help</p>
-        <p class="text-xs text-gray-400 mt-2">Posted {{ request.timeAgo }}</p>
-      </div>
-      <div class="bg-gray-50 px-5 py-3">
-        <button class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-          View Details
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="mb-5">
+  <h1 class="text-xl font-semibold text-gray-900">Available requests</h1>
+  <p class="mt-0.5 text-sm text-gray-600">
+    Sorted by urgency, then by how close they are to you. Accept one to see the
+    contact details.
+  </p>
 </div>
+
+@if (auth.user()?.approvalStatus === 'PENDING') {
+  <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-5">
+    <p class="text-sm font-semibold text-amber-900">Your account is awaiting approval</p>
+    <p class="mt-1 text-sm text-amber-800">
+      You can see what is waiting, but you cannot accept anything until an
+      administrator approves your volunteer account.
+    </p>
+  </div>
+}
+
+<div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-gray-700">
+  🔒 Names and phone numbers are hidden until you accept. You see only the
+  category, the urgency, an approximate distance and how many people are affected.
+</div>
+
+<!-- controls -->
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <div class="flex gap-1.5">
+    @for (s of ['urgency', 'distance', 'newest']; track s) {
+      <button type="button" (click)="setSort($any(s))"
+              class="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+              [class]="sort() === s
+                ? 'border-blue-800 bg-blue-800 text-white'
+                : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">
+        {{ s === 'urgency' ? 'Most urgent' : s === 'distance' ? 'Nearest' : 'Newest' }}
+      </button>
+    }
+  </div>
+
+  <select [value]="category()" (change)="setCategory($any($event.target).value)"
+          class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold">
+    <option value="">All categories</option>
+    @for (c of ref.categories(); track c.code) { <option [value]="c.code">{{ c.name }}</option> }
+  </select>
+
+  <span class="ml-auto text-xs text-gray-500">{{ store.total() }} waiting</span>
+</div>
+
+@if (store.loading() || store.error()) {
+  <app-state-panel [loading]="store.loading()" [error]="store.error()"
+                   [onRetry]="load.bind(this)" loadingText="Finding requests near you…" />
+} @else if (store.items().length === 0) {
+  <div class="rounded-xl border border-gray-200 bg-white">
+    <app-state-panel [empty]="true" emptyIcon="◎"
+                     emptyTitle="Nothing waiting"
+                     emptyText="Every nearby request has been accepted. Thank you." />
+  </div>
+} @else {
+  <div class="grid gap-4 md:grid-cols-2">
+    @for (r of store.items(); track r.id) {
+      <article class="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+               [class.border-l-4]="r.urgency === 'CRITICAL'"
+               [class.border-l-red-600]="r.urgency === 'CRITICAL'">
+
+        <div class="mb-3 flex items-start gap-3">
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-semibold text-gray-900">{{ r.categoryName }}</h2>
+            <p class="mt-0.5 font-mono text-xs text-gray-500">{{ r.reference }}</p>
+          </div>
+          <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                [class]="URGENCY_CLASS[r.urgency]">{{ label(r.urgency) }}</span>
+        </div>
+
+        <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+          @if (r.distanceKm != null) {
+            <dt class="text-gray-500">Distance</dt>
+            <dd class="font-medium text-gray-900">{{ distance(r.distanceKm) }}</dd>
+          }
+          <dt class="text-gray-500">People</dt>
+          <dd class="font-medium text-gray-900">{{ r.peopleCount }}</dd>
+          <dt class="text-gray-500">Area</dt>
+          <dd class="font-medium text-gray-900">{{ r.locationText }}</dd>
+          <dt class="text-gray-500">Waiting</dt>
+          <dd class="font-medium text-gray-900">{{ when(r.submittedAt) }}</dd>
+        </dl>
+
+        <p class="mb-3 line-clamp-3 text-sm text-gray-600">{{ r.description }}</p>
+
+        <div class="mb-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2
+                    text-xs text-gray-500">
+          🔒 Victim contact — released when you accept
+        </div>
+
+        <button type="button" (click)="claim(r.id, r.reference)"
+                [disabled]="!r.permissions.canClaim || claiming() !== null"
+                class="mt-auto w-full rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold
+                       text-white hover:bg-blue-900 disabled:opacity-50">
+          {{ claiming() === r.id ? 'Accepting…' : 'Accept this request' }}
+        </button>
+      </article>
+    }
+  </div>
+}

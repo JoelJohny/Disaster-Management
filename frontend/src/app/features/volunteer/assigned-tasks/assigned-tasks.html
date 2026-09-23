@@ -1,68 +1,164 @@
-<!-- 
-  This is a revised, professional page for volunteers to view their assigned tasks.
-
-  Improvements:
-  - A modern, card-based grid layout that is more visually appealing and responsive.
-  - Each card includes more detailed information, such as the date accepted and number of people.
-  - A visual progress bar on each card to show the task's status.
-  - Clearer action buttons for managing each task.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">My Assigned Tasks</h1>
-    <p class="text-gray-500">These are the help requests you have committed to. Thank you for your help!</p>
-  </div>
-
-  <!-- Assigned Tasks Grid -->
-  <div *ngIf="assignedRequests.length > 0; else noTasks" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-    <!-- Loop through each assigned request -->
-    <div *ngFor="let request of assignedRequests" class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
-      <div class="p-5 flex-grow">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="text-xs text-gray-500">Accepted on {{ request.dateAccepted }}</p>
-            <h3 class="text-lg font-semibold text-gray-800 mt-1">{{ request.type }}</h3>
-            <p class="text-sm text-gray-600">{{ request.location }}</p>
-          </div>
-          <span class="text-xs font-bold px-3 py-1 rounded-full flex-shrink-0" [ngClass]="getUrgencyColor(request.urgency).bgColor + ' ' + getUrgencyColor(request.urgency).textColor">
-            {{ request.urgency }}
-          </span>
-        </div>
-        <div class="mt-4 flex items-center text-sm text-gray-500">
-          <fa-icon [icon]="faUsers" class="mr-2"></fa-icon>
-          <span>{{ request.peopleCount }} people</span>
-        </div>
-        
-        <!-- Progress Bar -->
-        <div class="mt-4">
-          <div class="flex justify-between mb-1">
-            <span class="text-sm font-medium text-gray-700">{{ request.status }}</span>
-            <span class="text-sm font-medium text-gray-700">{{ request.progress }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="bg-blue-600 h-2.5 rounded-full" [style.width.%]="request.progress"></div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Card Actions -->
-      <div class="bg-gray-50 px-5 py-3 flex items-center justify-end space-x-3">
-        <button class="font-medium text-gray-600 hover:text-gray-900 text-sm">Update Status</button>
-        <button class="font-medium bg-blue-600 text-white hover:bg-blue-700 text-sm px-4 py-2 rounded-lg">View Details</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Template for when there are no assigned tasks -->
-  <ng-template #noTasks>
-    <div class="bg-white p-8 rounded-lg shadow-md text-center">
-      <fa-icon [icon]="faTasks" class="text-gray-300 text-5xl mb-4"></fa-icon>
-      <h3 class="text-xl font-semibold text-gray-700">No Assigned Tasks</h3>
-      <p class="text-gray-500 mt-2">You have no active assignments. Accept a new request to get started!</p>
-      <button class="mt-4 bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700 transition-colors">
-        Find Available Requests
-      </button>
-    </div>
-  </ng-template>
+<div class="mb-5">
+  <h1 class="text-xl font-semibold text-gray-900">My tasks</h1>
+  <p class="mt-0.5 text-sm text-gray-600">
+    Requests you have accepted. Move each one along as you work.
+  </p>
 </div>
+
+@if (store.loading() || store.error()) {
+  <app-state-panel [loading]="store.loading()" [error]="store.error()"
+                   [onRetry]="load.bind(this)" loadingText="Loading your tasks…" />
+} @else if (store.items().length === 0) {
+  <div class="rounded-xl border border-gray-200 bg-white">
+    <app-state-panel [empty]="true" emptyIcon="☑"
+                     emptyTitle="No tasks yet"
+                     emptyText="Accept a request from the available pool to get started." />
+  </div>
+} @else {
+  <div class="space-y-4">
+    @for (r of store.items(); track r.id) {
+      <article class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+
+        <div class="flex flex-wrap items-start gap-4">
+          <div class="min-w-[220px] flex-1">
+            <div class="mb-1 flex items-center gap-2">
+              <h2 class="text-base font-semibold text-gray-900">{{ r.categoryName }}</h2>
+              <span class="rounded-full px-2 py-0.5 text-[11px] font-bold" [class]="URGENCY_CLASS[r.urgency]">
+                {{ label(r.urgency) }}
+              </span>
+            </div>
+            <p class="font-mono text-xs text-gray-500">{{ r.reference }}</p>
+
+            <dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+              @if (r.victim) {
+                <dt class="text-gray-500">Contact</dt>
+                <dd class="font-medium text-gray-900">
+                  {{ r.victim.fullName }} · {{ r.victim.phone }}
+                </dd>
+              }
+              <dt class="text-gray-500">Location</dt>
+              <dd class="font-medium text-gray-900">
+                {{ r.locationText }}
+                @if (r.distanceKm != null) { <span class="text-gray-500">({{ r.distanceKm }} km)</span> }
+              </dd>
+              <dt class="text-gray-500">People</dt>
+              <dd class="font-medium text-gray-900">{{ r.peopleCount }}</dd>
+            </dl>
+
+            <p class="mt-3 text-sm text-gray-600">{{ r.description }}</p>
+          </div>
+
+          <div class="flex w-full flex-col items-stretch gap-2 sm:w-52">
+            <span class="self-start rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  [class]="STATUS_CLASS[r.status]">{{ label(r.status) }}</span>
+
+            @if (r.assignment?.status === 'ASSIGNED') {
+              <button type="button" (click)="start(r)" [disabled]="busy() === r.id"
+                      class="rounded-lg bg-blue-800 px-3 py-2 text-sm font-semibold text-white
+                             hover:bg-blue-900 disabled:opacity-50">
+                Start this task
+              </button>
+              <button type="button" (click)="tryIllegalComplete(r)" [disabled]="busy() === r.id"
+                      class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold
+                             text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                Mark completed
+                <span class="block text-[10px] font-normal text-gray-400">skips a step</span>
+              </button>
+            }
+
+            @if (r.assignment?.status === 'IN_PROGRESS') {
+              <button type="button" (click)="openComplete(r)" [disabled]="busy() === r.id"
+                      class="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white
+                             hover:bg-green-800 disabled:opacity-50">
+                Complete &amp; log hours
+              </button>
+            }
+
+            @if (active(r)) {
+              <button type="button" (click)="release(r)" [disabled]="busy() === r.id"
+                      class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold
+                             hover:bg-gray-50 disabled:opacity-50">
+                Release to pool
+              </button>
+            }
+
+            @if (r.assignment?.status === 'COMPLETED') {
+              <p class="text-sm text-gray-600">
+                {{ r.assignment!.hoursLogged }} hours logged
+              </p>
+            }
+
+            <a [routerLink]="['/requests', r.id]"
+               class="rounded-lg px-3 py-2 text-center text-sm font-semibold text-blue-800 hover:underline">
+              View full detail
+            </a>
+          </div>
+        </div>
+
+        @if (r.assignment?.status === 'IN_PROGRESS') {
+          <div class="mt-4 border-t border-gray-100 pt-4">
+            <div class="mb-1.5 flex justify-between text-xs text-gray-500">
+              <span>Progress</span><span>{{ r.assignment!.progressPct }}%</span>
+            </div>
+            <div class="mb-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
+              <div class="h-full rounded-full bg-blue-700" [style.width.%]="r.assignment!.progressPct"></div>
+            </div>
+            <div class="flex gap-1.5">
+              @for (p of [25, 50, 75]; track p) {
+                <button type="button" (click)="setProgress(r, p)" [disabled]="busy() === r.id"
+                        class="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-xs font-semibold
+                               hover:bg-gray-50 disabled:opacity-50">
+                  {{ p }}%
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </article>
+    }
+  </div>
+
+  <div class="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-xs text-gray-500">
+    Try <strong>Mark completed</strong> on a task you have not started. The server
+    refuses it — the lifecycle is enforced on the server, not by hiding buttons.
+  </div>
+}
+
+<!-- completion dialog -->
+@if (completing(); as task) {
+  <div class="fixed inset-0 z-[70] grid place-items-center bg-black/50 p-5"
+       (click)="$event.target === $event.currentTarget && completing.set(null)">
+    <div class="w-full max-w-md rounded-xl bg-white shadow-xl" role="dialog" aria-modal="true">
+      <div class="border-b border-gray-200 px-5 py-4">
+        <h3 class="text-base font-semibold text-gray-900">Complete {{ task.reference }}</h3>
+      </div>
+      <div class="px-5 py-4">
+        <label for="hours" class="mb-1.5 block text-sm font-semibold text-gray-800">
+          Hours spent
+        </label>
+        <input id="hours" type="number" min="0" max="999" step="0.5" [(ngModel)]="hours"
+               class="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm
+                      outline-none focus:ring-2 focus:ring-blue-600">
+
+        <label for="notes" class="mb-1.5 block text-sm font-semibold text-gray-800">
+          What did you do? <span class="font-normal text-gray-500">optional</span>
+        </label>
+        <textarea id="notes" rows="3" [(ngModel)]="notes" maxlength="500"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm
+                         outline-none focus:ring-2 focus:ring-blue-600"
+                  placeholder="e.g. Delivered 20 litres of water and a ration kit."></textarea>
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-3">
+        <button type="button" (click)="completing.set(null)"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmComplete()" [disabled]="busy() !== null"
+                class="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white
+                       hover:bg-green-800 disabled:opacity-50">
+          Complete task
+        </button>
+      </div>
+    </div>
+  </div>
+}

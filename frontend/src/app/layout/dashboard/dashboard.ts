@@ -1,75 +1,64 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faUsers, faClipboardList, faUserShield, faCheckCircle, faArrowUp, 
-  faArrowDown, faPlusCircle, faUserCog, faListAlt, faFileExport 
-} from '@fortawesome/free-solid-svg-icons';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { Api, type ApiError } from '../../core/services/api';
+import { StatePanel } from '../../shared/state-panel';
+import { STATUS_CLASS, label, when } from '../../shared/ui';
 
-interface Activity {
-  user: string;
-  role: 'Volunteer' | 'Victim' | 'Admin';
-  action: string;
-  time: string;
-  link: string;
-  avatar: string;
-}
-
-// Interface for type safety on recent activity items
-interface Activity {
-  user: string;
-  role: 'Volunteer' | 'Victim' | 'Admin';
-  action: string;
-  time: string;
-  link: string;
+interface AdminDash {
+  kpis: {
+    openRequests: number;
+    criticalUnassigned: number;
+    resolvedThisWeek: number;
+    volunteersOnline: number;
+  };
+  trend: { date: string; count: number }[];
+  byType: { code: string; name: string; status: string; n: number }[];
+  activity: {
+    id: number; reference: string; status: string;
+    actorName: string; actorRole: string; occurredAt: string;
+  }[];
 }
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule,FontAwesomeModule],
+  imports: [RouterLink, StatePanel],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss'
+  styleUrl: './dashboard.scss',
 })
-export class Dashboard implements OnInit {
+export class Dashboard {
+  private api = inject(Api);
 
-  // Icon definitions
-  faUsers = faUsers;
-  faClipboardList = faClipboardList;
-  faUserShield = faUserShield;
-  faCheckCircle = faCheckCircle;
-  faArrowUp = faArrowUp;
-  faArrowDown = faArrowDown;
-  faPlusCircle = faPlusCircle;
-  faUserCog = faUserCog;
-  faListAlt = faListAlt;
-  faFileExport = faFileExport;
+  readonly data = signal<AdminDash | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
 
-  // Data properties for the stat cards
-  totalUsers = 0;
-  activeRequests = 0;
-  volunteersOnline = 0;
-  resolvedToday = 0;
+  readonly STATUS_CLASS = STATUS_CLASS;
+  readonly label = label;
+  readonly when = when;
 
-  // Data for the recent activity table
-  recentActivity: Activity[] = [];
+  /** Bar heights as percentages of the tallest day. */
+  readonly trendBars = computed(() => {
+    const t = this.data()?.trend ?? [];
+    const max = Math.max(1, ...t.map(d => d.count));
+    return t.map(d => ({
+      ...d,
+      pct: Math.round((d.count / max) * 100),
+      day: new Date(d.date).toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 2),
+    }));
+  });
 
-  constructor() { }
+  constructor() { this.load(); }
 
-  ngOnInit(): void {
-    this.loadDashboardData();
-  }
-
-  private loadDashboardData(): void {
-    this.totalUsers = 1428;
-    this.activeRequests = 73;
-    this.volunteersOnline = 42;
-    this.resolvedToday = 15;
-
-    this.recentActivity = [
-      { user: 'David Lee', role: 'Volunteer', action: 'Accepted a new task', time: '2m ago', link: '#', avatar: 'https://placehold.co/32x32/3498db/ffffff?text=DL' },
-      { user: 'Jane Doe', role: 'Victim', action: 'Submitted new help request', time: '15m ago', link: '#', avatar: 'https://placehold.co/32x32/e74c3c/ffffff?text=JD' },
-      { user: 'Admin User', role: 'Admin', action: 'Updated system settings', time: '1h ago', link: '#', avatar: 'https://placehold.co/32x32/95a5a6/ffffff?text=A' },
-      { user: 'Emily White', role: 'Volunteer', action: 'Completed a task', time: '2h ago', link: '#', avatar: 'https://placehold.co/32x32/2ecc71/ffffff?text=EW' }
-    ];
+  async load(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      this.data.set(await firstValueFrom(this.api.get<AdminDash>('/dashboard/admin')));
+    } catch (e) {
+      this.error.set((e as ApiError).message ?? 'Could not load the dashboard.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

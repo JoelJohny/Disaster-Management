@@ -1,127 +1,57 @@
-import { Component } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faHeartbeat, faUtensils, faHome, faTruck, 
-  faQuestionCircle, faFolderOpen 
-} from '@fortawesome/free-solid-svg-icons';
+import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { RequestsStore } from '../../../core/services/requests.store';
+import { StatePanel } from '../../../shared/state-panel';
+import { STATUS_CLASS, URGENCY_CLASS, label, when } from '../../../shared/ui';
 
-interface HelpRequest {
-  id: string;
-  type: string;
-  date: string;
-  status: 'Submitted' | 'In Progress' | 'Completed' | 'Cancelled';
-  icon: any;
-  iconBgColor: string;
-}
+const FILTERS = ['ALL', 'SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const;
+type Filter = (typeof FILTERS)[number];
+
 @Component({
   selector: 'app-request-status',
-  imports: [CommonModule,
-    FontAwesomeModule,
-    NgClass],
+  imports: [RouterLink, StatePanel],
   templateUrl: './request-status.html',
-  styleUrl: './request-status.scss'
+  styleUrl: './request-status.scss',
 })
 export class RequestStatus {
+  readonly store = inject(RequestsStore);
 
-  // Icon definitions
-  faFolderOpen = faFolderOpen;
+  readonly filters = FILTERS;
+  readonly active = signal<Filter>('ALL');
 
-  // State for filtering and pagination
-  currentFilter: string = 'All';
-  currentPage = 1;
-  itemsPerPage = 5;
-  totalPages = 1;
-  
-  // Arrays to manage request data
-  allRequests: HelpRequest[] = []; // Holds all requests from the source
-  filteredRequests: HelpRequest[] = []; // Holds requests after filtering
-  paginatedRequests: HelpRequest[] = []; // Holds requests for the current page
+  readonly STATUS_CLASS = STATUS_CLASS;
+  readonly URGENCY_CLASS = URGENCY_CLASS;
+  readonly label = label;
+  readonly when = when;
 
-  constructor() { }
+  constructor() { this.load(); }
 
-  ngOnInit(): void {
-    // In a real app, you would fetch this data from an API
-    this.allRequests = this.getMockRequests();
-    this.updateRequestsView();
+  load(): void {
+    const f = this.active();
+    this.store.load('mine', f === 'ALL' ? {} : { status: f });
+  }
+
+  setFilter(f: Filter): void {
+    this.active.set(f);
+    this.store.page.set(1);
+    this.load();
   }
 
   /**
-   * Updates the filtered and paginated request lists based on the current state.
+   * Counts come from the server envelope, not from filtering an array here, so
+   * they stay correct across pagination instead of only describing this page.
    */
-  updateRequestsView(): void {
-    // 1. Apply Filter
-    if (this.currentFilter === 'All') {
-      this.filteredRequests = [...this.allRequests];
-    } else {
-      this.filteredRequests = this.allRequests.filter(req => req.status === this.currentFilter);
-    }
-
-    // 2. Apply Pagination
-    this.totalPages = Math.ceil(this.filteredRequests.length / this.itemsPerPage);
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.paginatedRequests = this.filteredRequests.slice(startIndex, endIndex);
+  countFor(f: Filter): number {
+    return f === 'ALL' ? this.store.total() : (this.store.counts()[f] ?? 0);
   }
 
-  /**
-   * Sets the current filter and resets the view to the first page.
-   * @param status The status to filter by.
-   */
-  setFilter(status: string): void {
-    this.currentFilter = status;
-    this.currentPage = 1;
-    this.updateRequestsView();
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.store.total() / this.store.pageSize()));
   }
 
-  /**
-   * Navigates to the next page of requests.
-   */
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.updateRequestsView();
-    }
-  }
-
-  /**
-   * Navigates to the previous page of requests.
-   */
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.updateRequestsView();
-    }
-  }
-
-  /**
-   * Returns the appropriate Tailwind CSS classes for a given request status.
-   */
-  getStatusColor(status: 'Submitted' | 'In Progress' | 'Completed' | 'Cancelled'): string {
-    switch (status) {
-      case 'Submitted': return 'bg-blue-100 text-blue-800';
-      case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-      case 'Completed': return 'bg-green-100 text-green-800';
-      case 'Cancelled': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  }
-
-  /**
-   * Generates a larger set of mock data to demonstrate pagination.
-   */
-  getMockRequests(): HelpRequest[] {
-    return [
-      { id: 'REQ-001', type: 'Medical Assistance', date: 'Aug 25, 2025', status: 'In Progress', icon: faHeartbeat, iconBgColor: 'bg-red-500' },
-      { id: 'REQ-002', type: 'Food & Water', date: 'Aug 24, 2025', status: 'Completed', icon: faUtensils, iconBgColor: 'bg-green-500' },
-      { id: 'REQ-003', type: 'Shelter / Housing', date: 'Aug 22, 2025', status: 'Submitted', icon: faHome, iconBgColor: 'bg-blue-500' },
-      { id: 'REQ-004', type: 'Rescue / Evacuation', date: 'Aug 21, 2025', status: 'Cancelled', icon: faTruck, iconBgColor: 'bg-gray-500' },
-      { id: 'REQ-005', type: 'Medical Assistance', date: 'Aug 20, 2025', status: 'Completed', icon: faHeartbeat, iconBgColor: 'bg-green-500' },
-      { id: 'REQ-006', type: 'Other', date: 'Aug 19, 2025', status: 'Submitted', icon: faQuestionCircle, iconBgColor: 'bg-purple-500' },
-      { id: 'REQ-007', type: 'Food & Water', date: 'Aug 18, 2025', status: 'In Progress', icon: faUtensils, iconBgColor: 'bg-yellow-500' },
-      { id: 'REQ-008', type: 'Shelter / Housing', date: 'Aug 17, 2025', status: 'Completed', icon: faHome, iconBgColor: 'bg-green-500' },
-      { id: 'REQ-009', type: 'Medical Assistance', date: 'Aug 15, 2025', status: 'Submitted', icon: faHeartbeat, iconBgColor: 'bg-blue-500' },
-      { id: 'REQ-010', type: 'Rescue / Evacuation', date: 'Aug 14, 2025', status: 'In Progress', icon: faTruck, iconBgColor: 'bg-yellow-500' },
-    ];
+  goPage(p: number): void {
+    if (p < 1 || p > this.totalPages) return;
+    this.store.page.set(p);
+    this.load();
   }
 }

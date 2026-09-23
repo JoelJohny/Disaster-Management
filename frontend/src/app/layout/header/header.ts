@@ -1,58 +1,56 @@
-import { Component, HostListener, ElementRef, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faSearch, faBell, faUserPlus, faServer, faSignOutAlt, faBars, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
-import { Theme } from '../../services/theme'; // Adjust path if needed
-
-
+import { Component, ElementRef, EventEmitter, HostListener, Input, Output, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthStore } from '../../core/services/auth.store';
+import { NotificationStore } from '../../core/services/notifications.store';
+import { ReferenceStore } from '../../core/services/reference.store';
+import { when } from '../../shared/ui';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule,FontAwesomeModule],
+  imports: [],
   templateUrl: './header.html',
-  styleUrl: './header.scss'
+  styleUrl: './header.scss',
 })
 export class Header {
-@Input() isMobile = false;
+  @Input() isMobile = false;
   @Output() menuToggle = new EventEmitter<void>();
 
-  isNotificationsOpen = false;
-  isUserMenuOpen = false;
+  readonly auth = inject(AuthStore);
+  readonly notifications = inject(NotificationStore);
+  readonly ref = inject(ReferenceStore);
+  private router = inject(Router);
+  private host = inject(ElementRef);
 
-  // Icon definitions
-  faSearch = faSearch;
-  faBell = faBell;
-  faUserPlus = faUserPlus;
-  faServer = faServer;
-  faSignOutAlt = faSignOutAlt;
-  faBars = faBars;
-  faSun = faSun;
-  faMoon = faMoon;
-
-  constructor(
-    private elementRef: ElementRef,
-    public themeService: Theme // Make it public to access in template
-  ) { }
+  readonly bellOpen = signal(false);
+  readonly menuOpen = signal(false);
+  readonly when = when;
 
   @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.isNotificationsOpen = false;
-      this.isUserMenuOpen = false;
+  onDocumentClick(e: MouseEvent): void {
+    if (!this.host.nativeElement.contains(e.target)) {
+      this.bellOpen.set(false);
+      this.menuOpen.set(false);
     }
   }
 
-  onMenuClick(): void {
-    this.menuToggle.emit();
+  toggleBell(): void {
+    const next = !this.bellOpen();
+    this.bellOpen.set(next);
+    this.menuOpen.set(false);
+    if (next) {
+      this.notifications.refresh().then(() => this.notifications.markAllRead());
+    }
   }
 
-  toggleNotifications(): void {
-    this.isNotificationsOpen = !this.isNotificationsOpen;
-    this.isUserMenuOpen = false;
+  toggleMenu(): void {
+    this.menuOpen.update(v => !v);
+    this.bellOpen.set(false);
   }
 
-  toggleUserMenu(): void {
-    this.isUserMenuOpen = !this.isUserMenuOpen;
-    this.isNotificationsOpen = false;
+  open(url: string | null): void {
+    this.bellOpen.set(false);
+    if (url) this.router.navigateByUrl(url);
   }
+
+  logout(): void { this.auth.logout(); }
 }

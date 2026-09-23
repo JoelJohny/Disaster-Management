@@ -1,0 +1,157 @@
+@if (loading() || error()) {
+  <app-state-panel [loading]="loading()" [error]="error()" [onRetry]="reload.bind(this)"
+                   loadingText="Loading request…" />
+}
+
+<!-- `as` is only permitted on a primary @if, so this is its own block. -->
+@if (!loading() && !error() && request(); as r) {
+
+  <div class="mb-5 flex flex-wrap items-start gap-3">
+    <div class="min-w-0 flex-1">
+      <button type="button" (click)="goBack()"
+              class="mb-2 text-sm font-medium text-gray-500 hover:text-gray-900">← Back</button>
+      <h1 class="text-xl font-semibold text-gray-900">{{ r.categoryName }}</h1>
+      <p class="mt-0.5 font-mono text-xs text-gray-500">{{ r.reference }}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="rounded-full px-2.5 py-1 text-xs font-bold" [class]="URGENCY_CLASS[r.urgency]">
+        {{ label(r.urgency) }}
+      </span>
+      <span class="rounded-full px-2.5 py-1 text-xs font-bold" [class]="STATUS_CLASS[r.status]">
+        {{ label(r.status) }}
+      </span>
+    </div>
+  </div>
+
+  <div class="grid gap-5 lg:grid-cols-2">
+
+    <!-- timeline -->
+    <section class="rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="border-b border-gray-200 px-5 py-3">
+        <h2 class="text-sm font-semibold text-gray-900">Status timeline</h2>
+      </div>
+      <div class="px-5 py-4">
+        <ol class="relative ml-2 border-l border-gray-200 pl-6">
+          @for (e of timeline(); track e.id; let last = $last) {
+            <li class="relative" [class.pb-5]="!last">
+              <span class="absolute -left-[31px] top-1 h-2.5 w-2.5 rounded-full ring-2 ring-white"
+                    [class]="last ? 'bg-red-600' : 'bg-blue-700'"></span>
+              <p class="text-sm font-semibold text-gray-900">{{ label(e.toStatus) }}</p>
+              <p class="text-xs text-gray-600">by {{ e.actorName }} ({{ label(e.actorRole) }})</p>
+              @if (e.reason) { <p class="mt-0.5 text-xs italic text-gray-500">{{ e.reason }}</p> }
+              <p class="mt-0.5 text-xs text-gray-400">{{ dateTime(e.occurredAt) }}</p>
+            </li>
+          }
+        </ol>
+        <p class="mt-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
+          This history is append-only. The application account cannot update or delete
+          these rows — the database refuses it.
+        </p>
+      </div>
+    </section>
+
+    <!-- details + actions -->
+    <div class="space-y-5">
+      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 class="mb-3 text-sm font-semibold text-gray-900">Details</h2>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <dt class="text-gray-500">Type</dt>        <dd class="font-medium">{{ r.categoryName }}</dd>
+          <dt class="text-gray-500">Urgency</dt>     <dd class="font-medium">{{ label(r.urgency) }}</dd>
+          <dt class="text-gray-500">Location</dt>    <dd class="font-medium">{{ r.locationText }}</dd>
+          <dt class="text-gray-500">District</dt>    <dd class="font-medium">{{ r.district }}</dd>
+          <dt class="text-gray-500">People</dt>      <dd class="font-medium">{{ r.peopleCount }}</dd>
+          <dt class="text-gray-500">Submitted</dt>   <dd class="font-medium">{{ dateTime(r.submittedAt) }}</dd>
+          @if (r.disasterTitle) {
+            <dt class="text-gray-500">Event</dt>     <dd class="font-medium">{{ r.disasterTitle }}</dd>
+          }
+          @if (r.distanceKm != null) {
+            <dt class="text-gray-500">Distance</dt>  <dd class="font-medium">{{ distance(r.distanceKm) }}</dd>
+          }
+        </dl>
+        <p class="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-700">{{ r.description }}</p>
+      </section>
+
+      <!-- victim contact: present only when the server decided it should be -->
+      @if (r.victim) {
+        <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 class="mb-3 text-sm font-semibold text-gray-900">Person requesting help</h2>
+          <p class="text-sm font-medium text-gray-900">{{ r.victim.fullName }}</p>
+          <p class="text-sm text-gray-600">{{ r.victim.phone }}</p>
+        </section>
+      } @else {
+        <section class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-4">
+          <p class="text-sm text-gray-500">
+            🔒 Name and contact number are released when you accept this request.
+          </p>
+        </section>
+      }
+
+      @if (r.volunteer) {
+        <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 class="mb-3 text-sm font-semibold text-gray-900">Assigned volunteer</h2>
+          <div class="flex items-center gap-3">
+            <div class="grid h-9 w-9 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-800">
+              {{ r.volunteer.fullName.charAt(0) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-gray-900">{{ r.volunteer.fullName }}</p>
+              <p class="text-sm text-gray-600">
+                @if (r.volunteer.phone) { {{ r.volunteer.phone }} }
+                @if (r.volunteer.ratingAvg) { · ★ {{ r.volunteer.ratingAvg }} }
+              </p>
+            </div>
+          </div>
+          @if (r.assignment && r.assignment.status === 'IN_PROGRESS') {
+            <div class="mt-4">
+              <div class="mb-1 flex justify-between text-xs text-gray-500">
+                <span>Progress</span><span>{{ r.assignment.progressPct }}%</span>
+              </div>
+              <div class="h-1.5 overflow-hidden rounded-full bg-gray-200">
+                <div class="h-full rounded-full bg-blue-700" [style.width.%]="r.assignment.progressPct"></div>
+              </div>
+            </div>
+          }
+          @if (r.assignment?.completionNotes) {
+            <p class="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-600">
+              {{ r.assignment!.completionNotes }}
+            </p>
+          }
+        </section>
+      }
+
+      <!-- actions, driven by the server's permissions block -->
+      <div class="flex flex-wrap gap-2">
+        @if (r.permissions.canClaim) {
+          <button type="button" (click)="doClaim()" [disabled]="busy()"
+                  class="rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 disabled:opacity-50">
+            {{ busy() ? 'Accepting…' : 'Accept this request' }}
+          </button>
+        }
+        @if (r.permissions.canLeaveFeedback) {
+          <button type="button" (click)="goFeedback()"
+                  class="rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900">
+            Rate this help
+          </button>
+        }
+        @if (r.permissions.canUpdateStatus) {
+          <a routerLink="/volunteer/my-tasks"
+             class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-gray-50">
+            Update status
+          </a>
+        }
+        @if (r.permissions.canCancel) {
+          <button type="button" (click)="confirmCancel.set(true)"
+                  class="rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50">
+            Cancel request
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <app-confirm-dialog [open]="confirmCancel()" title="Cancel this request?"
+                      confirmLabel="Yes, cancel it" [danger]="true" [busy]="busy()"
+                      (confirmed)="doCancel()" (cancelled)="confirmCancel.set(false)">
+    Once cancelled, volunteers will no longer see this request. You can submit a new one at any time.
+  </app-confirm-dialog>
+}

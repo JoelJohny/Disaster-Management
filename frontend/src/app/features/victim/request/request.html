@@ -1,122 +1,202 @@
-<!-- 
-  This is a revised, professional multi-step form for submitting a help request.
+<div class="mx-auto max-w-2xl">
 
-  Improvements:
-  - A multi-step process to guide the user through the form.
-  - A visual stepper/progress bar to show progress.
-  - Clear "Next" and "Previous" buttons for navigation.
-  - Enhanced styling and visual hierarchy for a more polished and professional feel.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Submit a Help Request</h1>
-    <p class="text-gray-500">Please provide as much detail as possible so we can assist you effectively.</p>
+  <div class="mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Request help</h1>
+    <p class="mt-0.5 text-sm text-gray-600">
+      Tell us what you need. Every answer helps get the right help to you faster.
+    </p>
   </div>
 
-  <!-- Help Request Form Card -->
-  <div class="bg-white p-6 md:p-8 rounded-lg shadow-md">
-    <!-- Stepper / Progress Bar -->
-    <div class="mb-8">
-      <div class="flex items-center">
-        <!-- Step 1 -->
-        <div class="flex items-center text-blue-600 relative">
-          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 border-blue-600 flex items-center justify-center">
-            <fa-icon [icon]="faClipboardList" class="text-xl"></fa-icon>
-          </div>
-          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase text-blue-600">Details</div>
+  <!-- stepper -->
+  <ol class="mb-7 flex items-center">
+    @for (s of [1, 2, 3]; track s) {
+      <li class="flex items-center" [class.flex-1]="s < 3">
+        <div class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-full border-2 text-sm font-bold"
+                [class]="step() >= s
+                  ? 'border-blue-800 bg-blue-800 text-white'
+                  : 'border-gray-300 bg-white text-gray-400'">
+            {{ step() > s ? '✓' : s }}
+          </span>
+          <span class="hidden text-xs font-bold uppercase tracking-wide sm:inline"
+                [class]="step() >= s ? 'text-gray-900' : 'text-gray-400'">
+            {{ s === 1 ? 'Details' : s === 2 ? 'Location' : 'Describe' }}
+          </span>
         </div>
-        <div class="flex-auto border-t-2 transition duration-500 ease-in-out" [class.border-blue-600]="currentStep > 1" [class.border-gray-300]="currentStep <= 1"></div>
-        
-        <!-- Step 2 -->
-        <div class="flex items-center relative" [class.text-blue-600]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">
-          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 flex items-center justify-center" [class.border-blue-600]="currentStep >= 2" [class.border-gray-300]="currentStep < 2">
-            <fa-icon [icon]="faMapMarkerAlt" class="text-xl"></fa-icon>
-          </div>
-          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase" [class.text-blue-600]="currentStep >= 2" [class.text-gray-500]="currentStep < 2">Location</div>
-        </div>
-        <div class="flex-auto border-t-2 transition duration-500 ease-in-out" [class.border-blue-600]="currentStep > 2" [class.border-gray-300]="currentStep <= 2"></div>
+        @if (s < 3) {
+          <span class="mx-3 h-0.5 flex-1" [class]="step() > s ? 'bg-blue-800' : 'bg-gray-200'"></span>
+        }
+      </li>
+    }
+  </ol>
 
-        <!-- Step 3 -->
-        <div class="flex items-center relative" [class.text-blue-600]="currentStep >= 3" [class.text-gray-500]="currentStep < 3">
-          <div class="rounded-full transition duration-500 ease-in-out h-12 w-12 border-2 flex items-center justify-center" [class.border-blue-600]="currentStep >= 3" [class.border-gray-300]="currentStep < 3">
-            <fa-icon [icon]="faCommentDots" class="text-xl"></fa-icon>
-          </div>
-          <div class="absolute top-0 -ml-10 text-center mt-16 w-32 text-xs font-medium uppercase" [class.text-blue-600]="currentStep >= 3" [class.text-gray-500]="currentStep < 3">Description</div>
-        </div>
-      </div>
+  @if (banner()) {
+    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+      {{ banner() }}
     </div>
+  }
 
-    <form action="#" class="space-y-6">
-      <!-- Step 1: Request Details -->
-      <div *ngIf="currentStep === 1">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Request Details</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label for="requestType" class="block text-sm font-medium text-gray-700">Type of Assistance Needed</label>
-            <select id="requestType" name="requestType" class="mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-              <option selected disabled>-- Please select an option --</option>
-              <option>Medical Assistance</option>
-              <option>Food & Water</option>
-              <option>Shelter / Housing</option>
-              <option>Rescue / Evacuation</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div>
-            <label for="urgency" class="block text-sm font-medium text-gray-700">Urgency Level</label>
-            <select id="urgency" name="urgency" class="mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-              <option>Low</option>
-              <option>Medium</option>
-              <option selected>High</option>
-              <option>Critical</option>
-            </select>
-          </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
+    <!-- ───────── step 1 ───────── -->
+    @if (step() === 1) {
+      <div formGroupName="details">
+        <div class="mb-5">
+          <label for="categoryCode" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            What kind of help do you need?
+          </label>
+          <select id="categoryCode" formControlName="categoryCode"
+                  class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                  [class.border-red-500]="invalid('details.categoryCode')"
+                  [class.bg-red-50]="invalid('details.categoryCode')"
+                  [class.border-gray-300]="!invalid('details.categoryCode')">
+            <option value="">— Please choose —</option>
+            @for (c of ref.categories(); track c.code) {
+              <option [value]="c.code">{{ c.name }}</option>
+            }
+          </select>
+          @if (invalid('details.categoryCode')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('details.categoryCode') }}</p>
+          }
         </div>
-      </div>
 
-      <!-- Step 2: Location & People -->
-      <div *ngIf="currentStep === 2">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Location & People</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label for="location" class="block text-sm font-medium text-gray-700">Location (Address or Landmark)</label>
-            <input type="text" id="location" name="location" placeholder="e.g., 123 Main St or near City Park" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="peopleCount" class="block text-sm font-medium text-gray-700">Number of People Needing Help</label>
-            <input type="number" id="peopleCount" name="peopleCount" min="1" placeholder="1" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: Description & Contact -->
-      <div *ngIf="currentStep === 3">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Description & Contact</h3>
         <div>
-          <label for="description" class="block text-sm font-medium text-gray-700">Detailed Description</label>
-          <textarea id="description" name="description" rows="5" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Please describe your situation. For medical requests, mention symptoms. For rescue, describe the environment."></textarea>
-        </div>
-        <div class="mt-6">
-          <label for="contact" class="block text-sm font-medium text-gray-700">Safe Contact Number or Email (Optional)</label>
-          <input type="text" id="contact" name="contact" placeholder="A safe way for us to contact you" class="mt-1 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label for="urgency" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            How urgent is this?
+          </label>
+          <select id="urgency" formControlName="urgency"
+                  class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                  [class.border-red-500]="invalid('details.urgency')"
+                  [class.bg-red-50]="invalid('details.urgency')"
+                  [class.border-gray-300]="!invalid('details.urgency')">
+            <option value="">— Please choose —</option>
+            <option value="CRITICAL">Critical — life is at risk right now</option>
+            <option value="HIGH">High — needed within hours</option>
+            <option value="MEDIUM">Medium — needed today</option>
+            <option value="LOW">Low — this can wait</option>
+          </select>
+          @if (invalid('details.urgency')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('details.urgency') }}</p>
+          }
         </div>
       </div>
+    }
 
-      <!-- Form Actions -->
-      <div class="pt-4 flex justify-between">
-        <button type="button" *ngIf="currentStep > 1" (click)="previousStep()" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">
-          Previous
-        </button>
-        <div *ngIf="currentStep === 1"></div> <!-- Spacer -->
+    <!-- ───────── step 2 ───────── -->
+    @if (step() === 2) {
+      <div formGroupName="location">
+        <div class="mb-5">
+          <label for="district" class="mb-1.5 block text-sm font-semibold text-gray-800">District</label>
+          <select id="district" formControlName="district"
+                  class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                  [class.border-red-500]="invalid('location.district')"
+                  [class.bg-red-50]="invalid('location.district')"
+                  [class.border-gray-300]="!invalid('location.district')">
+            <option value="">— Select your district —</option>
+            @for (d of ref.districts(); track d) { <option [value]="d">{{ d }}</option> }
+          </select>
+          @if (invalid('location.district')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('location.district') }}</p>
+          }
+        </div>
 
-        <button type="button" *ngIf="currentStep < 3" (click)="nextStep()" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-          Next
-        </button>
-        <button type="submit" *ngIf="currentStep === 3" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-          Submit Request
-        </button>
+        <div class="mb-5">
+          <label for="locationText" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            Where exactly?
+            <span class="font-normal text-gray-500">address or a nearby landmark</span>
+          </label>
+          <input id="locationText" formControlName="locationText"
+                 class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                 [class.border-red-500]="invalid('location.locationText')"
+                 [class.bg-red-50]="invalid('location.locationText')"
+                 [class.border-gray-300]="!invalid('location.locationText')"
+                 placeholder="e.g. near Aluva Metro Station">
+          @if (invalid('location.locationText')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('location.locationText') }}</p>
+          }
+        </div>
+
+        <div class="mb-4">
+          <label for="peopleCount" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            How many people need help?
+          </label>
+          <input id="peopleCount" type="number" min="1" max="999" formControlName="peopleCount"
+                 class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                 [class.border-red-500]="invalid('location.peopleCount')"
+                 [class.bg-red-50]="invalid('location.peopleCount')"
+                 [class.border-gray-300]="!invalid('location.peopleCount')">
+          @if (invalid('location.peopleCount')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('location.peopleCount') }}</p>
+          }
+        </div>
+
+        <p class="rounded-lg bg-blue-50 px-4 py-3 text-xs text-gray-700">
+          📍 Distance to volunteers is calculated from your district. No location
+          permission is needed, so this works indoors and on a weak connection.
+        </p>
       </div>
-    </form>
-  </div>
+    }
+
+    <!-- ───────── step 3 ───────── -->
+    @if (step() === 3) {
+      <div formGroupName="describe">
+        <div class="mb-5">
+          <label for="description" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            Describe your situation
+          </label>
+          <textarea id="description" rows="5" formControlName="description"
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                    [class.border-red-500]="invalid('describe.description')"
+                    [class.bg-red-50]="invalid('describe.description')"
+                    [class.border-gray-300]="!invalid('describe.description')"
+                    placeholder="For medical help, mention symptoms. For rescue, describe the surroundings and how the water is rising."></textarea>
+          @if (invalid('describe.description')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('describe.description') }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="contactPhone" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            Contact number
+            <span class="font-normal text-gray-500">
+              leave blank to use {{ auth.user()?.phone }}
+            </span>
+          </label>
+          <input id="contactPhone" formControlName="contactPhone"
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                 [placeholder]="auth.user()?.phone ?? ''">
+          @if (invalid('describe.contactPhone')) {
+            <p class="mt-1.5 text-xs text-red-700">{{ errorFor('describe.contactPhone') }}</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- navigation -->
+    <div class="mt-7 flex items-center justify-between gap-3 border-t border-gray-100 pt-5">
+      <button type="button" (click)="back()" [disabled]="step() === 1"
+              class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold
+                     hover:bg-gray-50 disabled:opacity-40">
+        ← Back
+      </button>
+
+      @if (step() < 3) {
+        <button type="button" (click)="next()"
+                class="rounded-lg bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-900">
+          Continue →
+        </button>
+      } @else {
+        <button type="submit" [disabled]="busy()"
+                class="rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white
+                       hover:bg-green-800 disabled:opacity-60">
+          {{ busy() ? 'Submitting…' : 'Submit request' }}
+        </button>
+      }
+    </div>
+  </form>
+
+  <p class="mt-4 text-center text-xs text-gray-500">
+    Your answers are saved as you type, so you will not lose them if this page reloads.
+  </p>
 </div>

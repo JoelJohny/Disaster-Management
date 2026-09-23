@@ -1,66 +1,72 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faEnvelope, 
-  faPhone, 
-  faPencilAlt, 
-  faTimes 
-} from '@fortawesome/free-solid-svg-icons';
-
-interface User {
-  name: string;
-  email: string;
-  phone: string;
-  role: 'Victim' | 'Volunteer' | 'Admin';
-  avatar: string;
-}
+import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { Api, type ApiError } from '../../core/services/api';
+import { AuthStore } from '../../core/services/auth.store';
+import { ReferenceStore } from '../../core/services/reference.store';
+import { ToastService } from '../../core/services/toast';
+import { label } from '../../shared/ui';
 
 @Component({
   selector: 'app-user-profile',
-  imports: [CommonModule,
-    FontAwesomeModule
-  ],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './user-profile.html',
-  styleUrl: './user-profile.scss'
+  styleUrl: './user-profile.scss',
 })
-export class UserProfile implements OnInit {
+export class UserProfile {
+  private fb = inject(NonNullableFormBuilder);
+  private api = inject(Api);
+  private toast = inject(ToastService);
+  readonly auth = inject(AuthStore);
+  readonly ref = inject(ReferenceStore);
 
-  // Icon definitions
-  faEnvelope = faEnvelope;
-  faPhone = faPhone;
-  faPencilAlt = faPencilAlt;
-  faTimes = faTimes;
+  readonly busy = signal(false);
+  readonly label = label;
 
-  // State for the component
-  isEditing = false;
-  user!: User; // Using definite assignment assertion
+  readonly form = this.fb.group({
+    fullName: ['', [Validators.required, Validators.minLength(2)]],
+    phone: ['', [Validators.required, Validators.pattern(/^(\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/)]],
+    district: ['', Validators.required],
+  });
 
-  constructor() { }
-
-  ngOnInit(): void {
-    // In a real app, you would fetch the logged-in user's data from a service
-    this.user = this.getMockUser();
+  constructor() {
+    this.ref.load();
+    const u = this.auth.user();
+    if (u) this.form.patchValue({ fullName: u.fullName, phone: u.phone, district: u.district });
   }
 
-  /**
-   * Toggles the edit mode for the profile information form.
-   */
-  toggleEditMode(): void {
-    this.isEditing = !this.isEditing;
+  invalid(name: string): boolean {
+    const c = this.form.get(name)!;
+    return c.invalid && c.touched;
   }
 
-  /**
-   * Generates mock user data.
-   */
-  private getMockUser(): User {
-    // This data would be dynamic based on the logged-in user
-    return {
-      name: 'Jane Doe',
-      email: 'jane.doe@example.com',
-      phone: '(555) 123-4567',
-      role: 'Victim',
-      avatar: 'https://placehold.co/96x96/e74c3c/ffffff?text=JD'
-    };
+  errorFor(name: string): string {
+    const c = this.form.get(name)!;
+    if (c.hasError('server')) return c.getError('server');
+    if (c.hasError('required')) return 'This field is required';
+    if (c.hasError('minlength')) return 'Too short';
+    if (c.hasError('pattern')) return 'Enter a valid Indian mobile number';
+    return '';
+  }
+
+  async save(): Promise<void> {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    this.busy.set(true);
+    try {
+      const r = await firstValueFrom(
+        this.api.patch<{ user: any }>('/auth/me', this.form.getRawValue()),
+      );
+      this.auth.setUser(r.user);
+      this.toast.success('Profile saved', 'Your details have been updated.');
+    } catch (e) {
+      const err = e as ApiError;
+      if (err.fieldErrors) {
+        for (const [k, m] of Object.entries(err.fieldErrors)) this.form.get(k)?.setErrors({ server: m });
+      }
+      this.toast.error('Could not save', err.message);
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

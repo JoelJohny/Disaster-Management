@@ -1,69 +1,41 @@
-import { RouterModule, RouterOutlet } from '@angular/router';
-import { Footer } from '../footer/footer';
+import { Component, inject, signal, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { Header } from '../header/header';
 import { Sidebar } from '../sidebar/sidebar';
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { Subject, filter, map, takeUntil } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { Footer } from '../footer/footer';
+import { Toasts } from '../../shared/toasts';
+import { NotificationStore } from '../../core/services/notifications.store';
+import { ReferenceStore } from '../../core/services/reference.store';
 
 @Component({
   selector: 'app-main-layout',
-  standalone: true,
-  imports: [RouterOutlet,Header,Footer,Sidebar,RouterModule,CommonModule],
+  imports: [RouterOutlet, Header, Sidebar, Footer, Toasts],
   templateUrl: './main-layout.html',
-  styleUrl: './main-layout.scss'
+  styleUrl: './main-layout.scss',
 })
-export class MainLayout  {
- isSidebarVisible = true;
-  isMobile = false;
-  private wasMobile = false;
+export class MainLayout implements OnInit, OnDestroy {
+  private notifications = inject(NotificationStore);
+  private ref = inject(ReferenceStore);
 
-  constructor() { }
+  readonly sidebarOpen = signal(true);
+  readonly isMobile = signal(false);
 
-  /**
-   * Listens for window resize events to dynamically adjust the layout.
-   */
-  @HostListener('window:resize', ['$event'])
-  onResize(event?: Event) {
-    this.checkScreenSize();
-  }
-
-  /**
-   * On component initialization, perform an initial screen size check.
-   */
   ngOnInit(): void {
-    this.wasMobile = window.innerWidth < 768;
-    this.checkScreenSize();
+    this.onResize();
+    this.ref.load();
+    this.notifications.startPolling(20_000);
   }
 
-  /**
-   * Checks the window width and updates layout properties accordingly.
-   * This version is more robust and only changes the sidebar visibility
-   * when crossing the mobile/desktop breakpoint, preserving the user's
-   * collapsed/expanded choice during other resize events.
-   */
-  private checkScreenSize(): void {
-    const isCurrentlyMobile = window.innerWidth < 768;
-    
-    // Check if we have crossed the breakpoint
-    if (isCurrentlyMobile !== this.wasMobile) {
-      if (isCurrentlyMobile) {
-        this.isSidebarVisible = false; // Hide when switching to mobile
-      } else {
-        this.isSidebarVisible = true; // Show when switching to desktop
-      }
-    }
-    
-    this.isMobile = isCurrentlyMobile;
-    this.wasMobile = isCurrentlyMobile;
+  ngOnDestroy(): void {
+    this.notifications.stopPolling();
   }
 
-  /**
-   * Toggles the sidebar's visibility. This method is called by both the
-   * header's hamburger menu (on mobile) and the sidebar's own toggle button.
-   */
-  toggleSidebar(): void {
-    this.isSidebarVisible = !this.isSidebarVisible;
+  @HostListener('window:resize')
+  onResize(): void {
+    const mobile = window.innerWidth < 1024;
+    this.isMobile.set(mobile);
+    this.sidebarOpen.set(!mobile);
   }
+
+  toggleSidebar(): void { this.sidebarOpen.update(v => !v); }
 }

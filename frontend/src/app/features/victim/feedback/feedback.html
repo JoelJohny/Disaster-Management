@@ -1,69 +1,92 @@
-<!-- 
-  This is a professional and empathetic page for a victim to provide feedback.
+<div class="mx-auto max-w-xl">
 
-  Features:
-  - A clear reference to the specific help request being reviewed.
-  - An interactive star rating system for an intuitive experience.
-  - A structured form with a text area for detailed comments and optional contact permission.
-  - A clean, focused, and responsive design.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Provide Feedback</h1>
-    <p class="text-gray-500">Your feedback is important and helps us improve our support system.</p>
-  </div>
+  <button type="button" (click)="goBack()"
+          class="mb-3 text-sm font-medium text-gray-500 hover:text-gray-900">← Back</button>
 
-  <!-- Feedback Form Card -->
-  <div class="bg-white p-6 md:p-8 rounded-lg shadow-md">
-    <div class="border-b pb-4 mb-6">
-      <p class="text-sm text-gray-600">You are providing feedback for request:</p>
-      <p class="font-semibold text-lg text-blue-700">REQ-2024-B12 (Food & Water)</p>
+  <h1 class="text-xl font-semibold text-gray-900">Rate the help you received</h1>
+  <p class="mt-0.5 mb-6 text-sm text-gray-600">
+    Your feedback helps us recognise good volunteers and improve the response.
+  </p>
+
+  @if (loading()) {
+    <app-state-panel [loading]="true" loadingText="Loading…" />
+  }
+
+  @if (!loading() && error()) {
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
+      <p class="text-sm font-semibold text-amber-900">Cannot rate this request</p>
+      <p class="mt-1 text-sm text-amber-800">{{ error() }}</p>
+      <p class="mt-3 text-xs text-amber-700">
+        One rating per request is enforced by a unique index in the database,
+        not by a check in the application.
+      </p>
+    </div>
+  }
+
+  @if (!loading() && !error() && request(); as r) {
+    <div class="mb-5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <p class="font-mono text-xs text-gray-500">{{ r.reference }}</p>
+      <p class="mt-1 text-base font-semibold text-gray-900">{{ r.categoryName }}</p>
+      <p class="mt-0.5 text-sm text-gray-600">{{ r.locationText }}</p>
+      @if (r.volunteer) {
+        <p class="mt-3 border-t border-gray-100 pt-3 text-sm text-gray-700">
+          Helped by <span class="font-semibold">{{ r.volunteer.fullName }}</span>
+          @if (r.assignment?.hoursLogged) { · {{ r.assignment!.hoursLogged }} hours }
+        </p>
+      }
     </div>
 
-    <form action="#" class="space-y-6">
-      <!-- Star Rating -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">How would you rate the support you received?</label>
-        <div class="flex items-center space-x-2">
-          <button 
-            *ngFor="let star of [1, 2, 3, 4, 5]" 
-            type="button" 
-            (click)="setRating(star)"
-            (mouseover)="hoverRating = star"
-            (mouseleave)="hoverRating = 0"
-            class="text-3xl transition-colors"
-            [ngClass]="(hoverRating || rating) >= star ? 'text-yellow-400' : 'text-gray-300'"
-          >
-            <fa-icon [icon]="faStar"></fa-icon>
-          </button>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate
+          class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
+      <fieldset class="mb-5">
+        <legend class="mb-2 text-sm font-semibold text-gray-800">
+          How would you rate the help you received?
+        </legend>
+        <div role="radiogroup" aria-label="Rating out of five" class="flex gap-1.5">
+          @for (n of [1, 2, 3, 4, 5]; track n) {
+            <button type="button" role="radio"
+                    [attr.aria-checked]="form.controls.rating.value === n"
+                    [attr.aria-label]="n + (n === 1 ? ' star' : ' stars')"
+                    (click)="setRating(n)"
+                    (keydown)="onKey($event, n)"
+                    (mouseenter)="hovered.set(n)" (mouseleave)="hovered.set(0)"
+                    class="rounded text-4xl leading-none transition-colors
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                    [class]="n <= (hovered() || form.controls.rating.value)
+                      ? 'text-amber-400' : 'text-gray-300'">
+              ★
+            </button>
+          }
         </div>
+        @if (form.controls.rating.value > 0) {
+          <p class="mt-2 text-sm text-gray-600">
+            {{ form.controls.rating.value }} out of 5
+          </p>
+        }
+      </fieldset>
+
+      <div class="mb-5">
+        <label for="comments" class="mb-1.5 block text-sm font-semibold text-gray-800">
+          Anything you would like to add? <span class="font-normal text-gray-500">optional</span>
+        </label>
+        <textarea id="comments" rows="4" formControlName="comments" maxlength="1000"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none
+                         focus:ring-2 focus:ring-blue-600"
+                  placeholder="What went well, or what could have been better?"></textarea>
       </div>
 
-      <!-- Detailed Feedback -->
-      <div>
-        <label for="comments" class="block text-sm font-medium text-gray-700">Additional Comments</label>
-        <div class="mt-1">
-          <textarea id="comments" name="comments" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Please share any details about your experience. What went well? What could be improved?"></textarea>
-        </div>
-      </div>
-      
-      <!-- Contact Permission -->
-      <div class="flex items-start">
-        <div class="flex items-center h-5">
-          <input id="contact-permission" name="contact-permission" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-        </div>
-        <div class="ml-3 text-sm">
-          <label for="contact-permission" class="text-gray-700">A volunteer or admin may contact me about this feedback.</label>
-        </div>
-      </div>
+      <label class="mb-5 flex items-start gap-2.5 text-sm text-gray-700">
+        <input type="checkbox" formControlName="contactPermission"
+               class="mt-0.5 h-4 w-4 rounded border-gray-300">
+        <span>An administrator may contact me about this feedback.</span>
+      </label>
 
-      <!-- Form Actions -->
-      <div class="pt-4 flex justify-end">
-        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-          Submit Feedback
-        </button>
-      </div>
+      <button type="submit" [disabled]="busy() || form.controls.rating.value === 0"
+              class="w-full rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white
+                     hover:bg-blue-900 disabled:opacity-50">
+        {{ busy() ? 'Submitting…' : 'Submit rating' }}
+      </button>
     </form>
-  </div>
+  }
 </div>

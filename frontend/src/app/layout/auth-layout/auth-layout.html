@@ -1,1 +1,54 @@
-<router-outlet></router-outlet>
+<div class="grid min-h-screen lg:grid-cols-2">
+
+  <!-- Left: brand panel. Hidden below lg so the form gets the whole screen on a phone. -->
+  <div class="relative hidden overflow-hidden bg-slate-900 lg:flex lg:flex-col lg:justify-between lg:p-12">
+    <!-- soft radial wash, pure CSS, no image to load -->
+    <div class="pointer-events-none absolute inset-0 opacity-70"
+         style="background:
+           radial-gradient(60rem 40rem at 15% 0%,  rgba(27,94,138,.55), transparent 60%),
+           radial-gradient(45rem 35rem at 90% 100%, rgba(179,38,30,.35), transparent 60%);"></div>
+
+    <div class="relative flex items-center gap-3">
+      <div class="grid h-10 w-10 place-items-center rounded-xl bg-white text-base font-bold text-slate-900">DA</div>
+      <div>
+        <p class="text-base font-semibold text-white">DisasterAid</p>
+        <p class="text-xs text-slate-300">Kerala Relief Network</p>
+      </div>
+    </div>
+
+    <div class="relative max-w-md">
+      <h2 class="text-3xl font-semibold leading-tight text-white">
+        Getting help to the people who need it, without anyone being missed.
+      </h2>
+      <p class="mt-4 text-sm leading-relaxed text-slate-300">
+        A single shared record of every request for assistance — so nothing is lost
+        in a phone call, and no two teams are sent to the same house while another
+        household waits.
+      </p>
+
+      <dl class="mt-9 grid grid-cols-3 gap-4 border-t border-white/10 pt-6">
+        <div>
+          <dt class="text-xs text-slate-400">Victims</dt>
+          <dd class="mt-0.5 text-sm font-semibold text-white">Request &amp; track</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-slate-400">Volunteers</dt>
+          <dd class="mt-0.5 text-sm font-semibold text-white">Accept &amp; deliver</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-slate-400">Admin</dt>
+          <dd class="mt-0.5 text-sm font-semibold text-white">Coordinate</dd>
+        </div>
+      </dl>
+    </div>
+
+    <p class="relative text-xs text-slate-400">
+      &copy; {{ year }} DisasterAid · MCA Project
+    </p>
+  </div>
+
+  <!-- Right: the form, vertically and horizontally centred -->
+  <div class="flex items-center justify-center bg-gray-50 px-4 py-10 sm:px-8">
+    <router-outlet />
+  </div>
+</div>

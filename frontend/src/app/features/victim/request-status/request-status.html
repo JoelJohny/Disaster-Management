@@ -1,72 +1,107 @@
-<!-- 
-  This is a revised, professional page for a victim to track their help requests.
-
-  Improvements:
-  - Added filter buttons to allow users to view requests by status.
-  - Implemented pagination to handle a large number of requests gracefully.
-  - The layout is now a more scalable card-based grid instead of a timeline.
-  - The component is now fully equipped to handle many requests without cluttering the UI.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">My Requests Status</h1>
-    <p class="text-gray-500">Track the progress of your submitted help requests below.</p>
+<div class="mb-5 flex flex-wrap items-start gap-3">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-xl font-semibold text-gray-900">My requests</h1>
+    <p class="mt-0.5 text-sm text-gray-600">Everything you have submitted, and where each one stands.</p>
   </div>
-
-  <!-- Filter Controls -->
-  <div class="bg-white p-4 rounded-lg shadow-md flex flex-wrap items-center gap-2">
-    <span class="text-sm font-medium text-gray-700 mr-2">Filter by status:</span>
-    <button (click)="setFilter('All')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'All', 'bg-gray-200 text-gray-700': currentFilter !== 'All'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">All</button>
-    <button (click)="setFilter('Submitted')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Submitted', 'bg-gray-200 text-gray-700': currentFilter !== 'Submitted'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Submitted</button>
-    <button (click)="setFilter('In Progress')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'In Progress', 'bg-gray-200 text-gray-700': currentFilter !== 'In Progress'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">In Progress</button>
-    <button (click)="setFilter('Completed')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Completed', 'bg-gray-200 text-gray-700': currentFilter !== 'Completed'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Completed</button>
-    <button (click)="setFilter('Cancelled')" [ngClass]="{'bg-blue-600 text-white': currentFilter === 'Cancelled', 'bg-gray-200 text-gray-700': currentFilter !== 'Cancelled'}" class="px-3 py-1 text-sm font-semibold rounded-full hover:bg-blue-500 hover:text-white transition-colors">Cancelled</button>
-  </div>
-
-  <!-- Requests List -->
-  <div *ngIf="paginatedRequests.length > 0; else noRequests" class="space-y-4">
-    <!-- Loop through each request on the current page -->
-    <div *ngFor="let request of paginatedRequests" class="bg-white p-4 rounded-lg shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between transition-shadow hover:shadow-lg">
-      <div class="flex items-center mb-4 sm:mb-0">
-        <div class="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full text-white" [ngClass]="request.iconBgColor">
-          <fa-icon [icon]="request.icon" class="text-xl"></fa-icon>
-        </div>
-        <div class="ml-4">
-          <p class="font-semibold text-gray-800">{{ request.type }}</p>
-          <p class="text-xs text-gray-500">ID: {{ request.id }} &bull; Submitted: {{ request.date }}</p>
-        </div>
-      </div>
-      <div class="flex items-center space-x-4 w-full sm:w-auto">
-        <span class="text-xs font-medium px-3 py-1 rounded-full" [ngClass]="getStatusColor(request.status)">
-          {{ request.status }}
-        </span>
-        <button class="text-sm bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-          View Details
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pagination Controls -->
-  <div *ngIf="totalPages > 1" class="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
-    <button (click)="previousPage()" [disabled]="currentPage === 1" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-      Previous
-    </button>
-    <span class="text-sm text-gray-600">
-      Page {{ currentPage }} of {{ totalPages }}
-    </span>
-    <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
-      Next
-    </button>
-  </div>
-
-  <!-- Template for when there are no requests (or no matching filters) -->
-  <ng-template #noRequests>
-    <div class="bg-white p-8 rounded-lg shadow-md text-center">
-      <fa-icon [icon]="faFolderOpen" class="text-gray-300 text-5xl mb-4"></fa-icon>
-      <h3 class="text-xl font-semibold text-gray-700">No Requests Found</h3>
-      <p class="text-gray-500 mt-2">There are no requests matching your current filter.</p>
-    </div>
-  </ng-template>
+  <a routerLink="/victim/submit-request"
+     class="rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900">
+    ✚ New request
+  </a>
 </div>
+
+<!-- filter pills; counts come from the server -->
+<div class="mb-4 flex flex-wrap gap-2">
+  @for (f of filters; track f) {
+    <button type="button" (click)="setFilter(f)"
+            [attr.aria-pressed]="active() === f"
+            class="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold"
+            [class]="active() === f
+              ? 'border-blue-800 bg-blue-800 text-white'
+              : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">
+      {{ label(f) }}
+      <span class="rounded-full px-1.5 text-[11px] tabular-nums"
+            [class]="active() === f ? 'bg-white/20' : 'bg-gray-100'">
+        {{ countFor(f) }}
+      </span>
+    </button>
+  }
+</div>
+
+@if (store.loading() || store.error()) {
+  <app-state-panel [loading]="store.loading()" [error]="store.error()"
+                   [onRetry]="load.bind(this)" loadingText="Loading your requests…" />
+} @else if (store.items().length === 0) {
+  <div class="rounded-xl border border-gray-200 bg-white">
+    <app-state-panel [empty]="true" emptyIcon="☰"
+                     emptyTitle="Nothing here"
+                     emptyText="You have no requests with that status." />
+  </div>
+} @else {
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 text-left">
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Reference</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Type</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Urgency</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Status</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Volunteer</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Submitted</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of store.items(); track r.id) {
+            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+              <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ r.reference }}</td>
+              <td class="px-4 py-3 font-medium text-gray-900">{{ r.categoryName }}</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold" [class]="URGENCY_CLASS[r.urgency]">
+                  {{ label(r.urgency) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold" [class]="STATUS_CLASS[r.status]">
+                  {{ label(r.status) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-600">
+                {{ r.volunteer ? r.volunteer.fullName : '—' }}
+              </td>
+              <td class="px-4 py-3 text-gray-500">{{ when(r.submittedAt) }}</td>
+              <td class="px-4 py-3 text-right">
+                <a [routerLink]="['/requests', r.id]"
+                   class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-50">
+                  Details
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm">
+        <p class="text-gray-500">
+          Page {{ store.page() }} of {{ totalPages }} · {{ store.total() }} requests
+        </p>
+        <div class="flex gap-2">
+          <button type="button" (click)="goPage(store.page() - 1)" [disabled]="store.page() === 1"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold
+                         hover:bg-gray-50 disabled:opacity-40">Previous</button>
+          <button type="button" (click)="goPage(store.page() + 1)" [disabled]="store.page() >= totalPages"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold
+                         hover:bg-gray-50 disabled:opacity-40">Next</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <p class="mt-3 text-xs text-gray-500">
+    The number on each filter comes from the server, so it counts every matching
+    request — not just the ones on this page.
+  </p>
+}

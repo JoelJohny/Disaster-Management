@@ -1,102 +1,85 @@
-<!-- 
-  This is a professional, responsive login page component.
+<div class="w-full max-w-md">
+  <div class="mb-7 text-center">
+    <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl bg-blue-800 text-lg font-bold text-white">
+      DA
+    </div>
+    <h1 class="text-2xl font-semibold text-gray-900">Sign in to DisasterAid</h1>
+    <p class="mt-1 text-sm text-gray-600">Kerala Relief Network</p>
+  </div>
 
-  Features:
-  - A two-panel layout: one for branding/welcome message and one for the form.
-  - Clear input fields with icons for email and password.
-  - Options for "Remember Me" and "Forgot Password".
-  - Social login option (Google).
-  - A link for new users to register.
--->
-<div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-  <div class="w-full max-w-4xl flex flex-col md:flex-row bg-white rounded-xl shadow-2xl overflow-hidden">
-    
-    <!-- Left Panel: Branding & Welcome Message -->
-    <div class="w-full md:w-1/2 bg-blue-600 text-white p-12 flex flex-col justify-center items-center text-center">
-      <h1 class="text-4xl font-bold mb-3">Welcome Back!</h1>
-      <p class="mb-8">Sign in to access your account and continue managing your projects.</p>
-      <div class="w-32 h-1 bg-blue-400 rounded-full"></div>
+  @if (expired) {
+    <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      Your session ended. Please sign in again.
+    </div>
+  }
+
+  @if (banner()) {
+    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+      {{ banner() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate
+        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
+    <div class="mb-4">
+      <label for="email" class="mb-1.5 block text-sm font-semibold text-gray-800">Email address</label>
+      <input id="email" type="email" formControlName="email" autocomplete="email"
+             [attr.aria-invalid]="invalid('email')"
+             [attr.aria-describedby]="invalid('email') ? 'email-error' : null"
+             class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+             [class.border-red-500]="invalid('email')"
+             [class.bg-red-50]="invalid('email')"
+             [class.border-gray-300]="!invalid('email')"
+             placeholder="you@example.com">
+      @if (invalid('email')) {
+        <p id="email-error" class="mt-1.5 text-xs text-red-700">{{ errorFor('email') }}</p>
+      }
     </div>
 
-    <!-- Right Panel: Login Form -->
-    <div class="w-full md:w-1/2 p-8 md:p-12">
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">Login</h2>
-      <p class="text-gray-500 mb-8">Enter your credentials to continue.</p>
+    <div class="mb-5">
+      <label for="password" class="mb-1.5 block text-sm font-semibold text-gray-800">Password</label>
+      <input id="password" type="password" formControlName="password" autocomplete="current-password"
+             [attr.aria-invalid]="invalid('password')"
+             [attr.aria-describedby]="invalid('password') ? 'password-error' : null"
+             class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+             [class.border-red-500]="invalid('password')"
+             [class.bg-red-50]="invalid('password')"
+             [class.border-gray-300]="!invalid('password')"
+             placeholder="••••••••">
+      @if (invalid('password')) {
+        <p id="password-error" class="mt-1.5 text-xs text-red-700">{{ errorFor('password') }}</p>
+      }
+    </div>
 
-      <form action="#" class="space-y-6">
-        <!-- Email Input -->
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-          <div class="mt-1 relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <fa-icon [icon]="faEnvelope"></fa-icon>
-            </div>
-            <input 
-              type="email" 
-              id="email" 
-              name="email"
-              placeholder="you@example.com"
-              class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-          </div>
-        </div>
+    <button type="submit" [disabled]="busy()"
+            class="w-full rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white
+                   hover:bg-blue-900 disabled:opacity-60">
+      {{ busy() ? 'Signing in…' : 'Sign in' }}
+    </button>
 
-        <!-- Password Input -->
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <div class="mt-1 relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <fa-icon [icon]="faLock"></fa-icon>
-            </div>
-            <input 
-              type="password" 
-              id="password" 
-              name="password"
-              placeholder="Enter your password"
-              class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-          </div>
-        </div>
+    <p class="mt-4 text-center text-sm text-gray-600">
+      New here?
+      <a routerLink="/auth/register" class="font-semibold text-blue-800 hover:underline">Create an account</a>
+    </p>
+  </form>
 
-        <!-- Remember Me & Forgot Password -->
-        <div class="flex items-center justify-between text-sm">
-          <div class="flex items-center">
-            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="remember-me" class="ml-2 block text-gray-900">Remember me</label>
-          </div>
-          <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Forgot your password?</a>
-        </div>
-
-        <!-- Submit Button -->
-        <div>
-          <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Sign In
-          </button>
-        </div>
-      </form>
-
-      <!-- Separator -->
-      <div class="mt-8 flex items-center">
-        <div class="flex-grow border-t border-gray-300"></div>
-        <span class="flex-shrink mx-4 text-gray-500 text-sm">Or continue with</span>
-        <div class="flex-grow border-t border-gray-300"></div>
-      </div>
-
-      <!-- Social Login -->
-      <div class="mt-6">
-        <button class="w-full flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-          <fa-icon [icon]="faGoogle" class="text-red-500 mr-3"></fa-icon>
-          Sign in with Google
-        </button>
-      </div>
-
-      <!-- Sign Up Link -->
-      <p class="mt-8 text-center text-sm text-gray-600">
-        Not a member yet?
-        <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
-          Sign up now
-        </a>
-      </p>
+  <!-- Seeded accounts, so a demo does not begin with typing a password. -->
+  <div class="mt-5 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
+    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Demo accounts</p>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" (click)="useDemo('victim')"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-100">
+        Victim — Priya
+      </button>
+      <button type="button" (click)="useDemo('volunteer')"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-100">
+        Volunteer — Arun
+      </button>
+      <button type="button" (click)="useDemo('admin')"
+              class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-gray-100">
+        Admin — Divya
+      </button>
     </div>
   </div>
 </div>

@@ -1,65 +1,76 @@
-import { Component } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faHeartbeat, faUtensils, faHome, faTruck, faList, faMapMarkedAlt,
-  faMapMarkerAlt, faUsers
-} from '@fortawesome/free-solid-svg-icons';
+import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { RequestsStore } from '../../../core/services/requests.store';
+import { ReferenceStore } from '../../../core/services/reference.store';
+import { AuthStore } from '../../../core/services/auth.store';
+import { ToastService } from '../../../core/services/toast';
+import { StatePanel } from '../../../shared/state-panel';
+import { URGENCY_CLASS, label, when, distance } from '../../../shared/ui';
+import type { ApiError } from '../../../core/services/api';
 
-interface AvailableRequest {
-  id: string;
-  type: string;
-  urgency: 'High' | 'Medium' | 'Low';
-  location: string;
-  distance: number;
-  peopleCount: number;
-  timeAgo: string;
-  icon: any;
-  iconBgColor: string;
-}
 @Component({
   selector: 'app-available-requests',
-  imports: [CommonModule,
-    FontAwesomeModule,
-    NgClass],
+  imports: [StatePanel],
   templateUrl: './available-requests.html',
-  styleUrl: './available-requests.scss'
+  styleUrl: './available-requests.scss',
 })
 export class AvailableRequests {
+  readonly store = inject(RequestsStore);
+  readonly ref = inject(ReferenceStore);
+  readonly auth = inject(AuthStore);
+  private toast = inject(ToastService);
+  private router = inject(Router);
 
- // Icon definitions
-  faList = faList;
-  faMapMarkedAlt = faMapMarkedAlt;
-  faMapMarkerAlt = faMapMarkerAlt;
-  faUsers = faUsers;
+  readonly sort = signal<'urgency' | 'distance' | 'newest'>('urgency');
+  readonly category = signal<string>('');
+  readonly claiming = signal<number | null>(null);
 
-  // Mock data for available requests
-  availableRequests: AvailableRequest[] = [
-    { id: 'REQ-001', type: 'Medical Assistance', urgency: 'High', location: 'City General Hospital', distance: 2.5, peopleCount: 1, timeAgo: '15m ago', icon: faHeartbeat, iconBgColor: 'bg-red-500' },
-    { id: 'REQ-007', type: 'Food & Water', urgency: 'Medium', location: 'Downtown Community Shelter', distance: 5.1, peopleCount: 12, timeAgo: '45m ago', icon: faUtensils, iconBgColor: 'bg-yellow-500' },
-    { id: 'REQ-009', type: 'Shelter / Housing', urgency: 'Medium', location: 'Northside Apartments', distance: 8.3, peopleCount: 4, timeAgo: '2h ago', icon: faHome, iconBgColor: 'bg-blue-500' },
-    { id: 'REQ-010', type: 'Rescue / Evacuation', urgency: 'High', location: 'Riverside Park', distance: 12.0, peopleCount: 3, timeAgo: '3h ago', icon: faTruck, iconBgColor: 'bg-red-500' },
-    { id: 'REQ-011', type: 'Food & Water', urgency: 'Low', location: 'West End Library', distance: 6.7, peopleCount: 8, timeAgo: '5h ago', icon: faUtensils, iconBgColor: 'bg-green-500' },
-  ];
+  readonly URGENCY_CLASS = URGENCY_CLASS;
+  readonly distance = distance;
+  readonly label = label;
+  readonly when = when;
 
-  constructor() { }
+  constructor() {
+    this.ref.load();
+    this.load();
+  }
+
+  load(): void {
+    this.store.load('available', {
+      sort: this.sort(),
+      categoryCode: this.category() || undefined,
+      pageSize: 50,
+    });
+  }
+
+  setSort(s: 'urgency' | 'distance' | 'newest'): void { this.sort.set(s); this.load(); }
+  setCategory(c: string): void { this.category.set(c); this.load(); }
 
   /**
-   * Returns the appropriate Tailwind CSS classes for a given urgency level.
-   * @param urgency The urgency of the request.
-   * @returns A string of CSS classes for the urgency badge.
+   * The atomic claim, from the client's side.
+   *
+   * Two volunteers pressing this within the same second is the case the whole
+   * design exists for: exactly one gets 201, the other gets 409 naming the
+   * winner. There is no optimistic update here — we wait for the server,
+   * because guessing the outcome is precisely what must not happen.
    */
-  getUrgencyColor(urgency: 'High' | 'Medium' | 'Low'): string {
-    switch (urgency) {
-      case 'High':
-        return 'bg-red-100 text-red-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  async claim(id: number, reference: string): Promise<void> {
+    if (this.claiming() !== null) return;
+    this.claiming.set(id);
+    try {
+      await this.store.claim(id);
+      this.toast.success('Request accepted', `${reference} is yours. Contact details are now visible.`);
+      this.router.navigate(['/requests', id]);
+    } catch (e) {
+      const err = e as ApiError;
+      if (err.code === 'ALREADY_CLAIMED') {
+        this.toast.error('Too late', err.message);
+      } else {
+        this.toast.error('Could not accept', err.message);
+      }
+      this.load();   // the card should disappear either way
+    } finally {
+      this.claiming.set(null);
     }
   }
 }
-

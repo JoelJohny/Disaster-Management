@@ -1,60 +1,66 @@
 import { Routes } from '@angular/router';
-import { Dashboard } from './layout/dashboard/dashboard';
-import { MainLayout } from './layout/main-layout/main-layout';
-import { Login } from './pages/login/login';
-import { AuthLayout } from './layout/auth-layout/auth-layout';
-import { Registration } from './pages/registration/registration';
-import { VictimDashboard } from './features/dashboard/victim-dashboard/victim-dashboard';
-import { Request } from './features/victim/request/request';
-import { RequestStatus } from './features/victim/request-status/request-status';
-import { Feedback } from './features/victim/feedback/feedback';
-import { VolunteerDashboard } from './features/volunteer/volunteer-dashboard/volunteer-dashboard';
-import { AvailableRequests } from './features/volunteer/available-requests/available-requests';
-import { AssignedTasks } from './features/volunteer/assigned-tasks/assigned-tasks';
-import { UserManagement } from './features/admin/user-management/user-management';
-import { AllRequests } from './features/admin/all-requests/all-requests';
-import { DisasterManagement } from './features/admin/disaster-management/disaster-management';
-import { SystemReports } from './features/admin/system-reports/system-reports';
-import { UserProfile } from './pages/user-profile/user-profile';
+import { authGuard, guestGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'auth',
-    component: AuthLayout,
+    canMatch: [guestGuard],
+    loadComponent: () => import('./layout/auth-layout/auth-layout').then(m => m.AuthLayout),
     children: [
-      { path: 'login', component: Login },
-      { path: 'register', component: Registration },
-    ]
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+      { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.Login) },
+      { path: 'register', loadComponent: () => import('./pages/registration/registration').then(m => m.Registration) },
+    ],
   },
   {
     path: '',
-    component: MainLayout,
+    canMatch: [authGuard],
+    loadComponent: () => import('./layout/main-layout/main-layout').then(m => m.MainLayout),
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      // Common Routes
-      { path: 'profile', component: UserProfile },
-      { path: 'dashboard', component: Dashboard }, // Generic or Admin Dashboard
+      { path: '', pathMatch: 'full', loadComponent: () => import('./pages/home-redirect/home-redirect').then(m => m.HomeRedirect) },
 
-      // Victim Routes
-      { path: 'victim/dashboard', component: VictimDashboard },
-      { path: 'victim/submit-request', component: Request },
-      { path: 'victim/my-requests', component: RequestStatus },
-      { path: 'victim/feedback', component: Feedback },
-      
-      // Volunteer Routes
-      { path: 'volunteer/dashboard', component: VolunteerDashboard },
-      { path: 'volunteer/available-tasks', component: AvailableRequests },
-      { path: 'volunteer/my-tasks', component: AssignedTasks },
-      
-      // Admin Routes
-      { path: 'admin/user-management', component: UserManagement },
-      { path: 'admin/all-requests', component: AllRequests },
-      { path: 'admin/disaster-management', component: DisasterManagement },
-      { path: 'admin/system-reports', component: SystemReports },
+      // Common
+      { path: 'profile', loadComponent: () => import('./pages/user-profile/user-profile').then(m => m.UserProfile) },
+      { path: 'requests/:id', loadComponent: () => import('./features/request-detail/request-detail').then(m => m.RequestDetail) },
 
-      // Default redirect
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-    ]
+      // Victim
+      {
+        path: 'victim', canMatch: [roleGuard('VICTIM', 'ADMIN')],
+        children: [
+          { path: 'dashboard', loadComponent: () => import('./features/dashboard/victim-dashboard/victim-dashboard').then(m => m.VictimDashboard) },
+          { path: 'submit-request', loadComponent: () => import('./features/victim/request/request').then(m => m.SubmitRequest) },
+          { path: 'my-requests', loadComponent: () => import('./features/victim/request-status/request-status').then(m => m.RequestStatus) },
+          { path: 'feedback/:requestId', loadComponent: () => import('./features/victim/feedback/feedback').then(m => m.Feedback) },
+        ],
+      },
+
+      // Volunteer
+      {
+        path: 'volunteer', canMatch: [roleGuard('VOLUNTEER', 'ADMIN')],
+        children: [
+          { path: 'dashboard', loadComponent: () => import('./features/volunteer/volunteer-dashboard/volunteer-dashboard').then(m => m.VolunteerDashboard) },
+          { path: 'available-tasks', loadComponent: () => import('./features/volunteer/available-requests/available-requests').then(m => m.AvailableRequests) },
+          { path: 'my-tasks', loadComponent: () => import('./features/volunteer/assigned-tasks/assigned-tasks').then(m => m.AssignedTasks) },
+        ],
+      },
+
+      // Admin
+      {
+        path: 'dashboard', canMatch: [roleGuard('ADMIN')],
+        loadComponent: () => import('./layout/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
+        path: 'admin', canMatch: [roleGuard('ADMIN')],
+        children: [
+          { path: 'user-management', loadComponent: () => import('./features/admin/user-management/user-management').then(m => m.UserManagement) },
+          { path: 'all-requests', loadComponent: () => import('./features/admin/all-requests/all-requests').then(m => m.AllRequests) },
+          { path: 'disaster-management', loadComponent: () => import('./features/admin/disaster-management/disaster-management').then(m => m.DisasterManagement) },
+          { path: 'system-reports', loadComponent: () => import('./features/admin/system-reports/system-reports').then(m => m.SystemReports) },
+        ],
+      },
+
+      { path: 'forbidden', loadComponent: () => import('./pages/forbidden/forbidden').then(m => m.Forbidden) },
+    ],
   },
-  { path: '**', redirectTo: 'auth/login' }
+  { path: '**', loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFound) },
 ];

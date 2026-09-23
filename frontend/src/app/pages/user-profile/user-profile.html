@@ -1,98 +1,63 @@
-<!-- 
-  This is a professional page for a user to view and edit their profile.
+<div class="mx-auto max-w-xl">
+  <h1 class="text-xl font-semibold text-gray-900">My profile</h1>
+  <p class="mt-0.5 mb-6 text-sm text-gray-600">Your account details.</p>
 
-  Features:
-  - A two-column responsive layout for separating profile details and security settings.
-  - An "Edit Profile" mode that toggles between displaying information and editable form fields.
-  - Clear sections for changing the password.
-  - A clean, card-based design with professional styling.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">My Profile</h1>
-    <p class="text-gray-500">Manage your personal information and security settings.</p>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left Column: Profile Details -->
-    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-      <div class="flex flex-col items-center">
-        <img [src]="user.avatar" class="w-24 h-24 rounded-full ring-4 ring-blue-100">
-        <h2 class="mt-4 text-xl font-semibold text-gray-800">{{ user.name }}</h2>
-        <p class="text-gray-500">{{ user.role }}</p>
+  @if (auth.user(); as u) {
+    <div class="mb-5 flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-50 text-lg font-semibold text-blue-800">
+        {{ auth.initials() }}
       </div>
-      <hr class="my-6">
-      <div>
-        <h3 class="font-semibold text-gray-700 mb-2">Contact Information</h3>
-        <div class="text-sm space-y-2">
-          <p class="flex items-center text-gray-600">
-            <fa-icon [icon]="faEnvelope" class="w-4 h-4 mr-3 text-gray-400"></fa-icon>
-            {{ user.email }}
-          </p>
-          <p class="flex items-center text-gray-600">
-            <fa-icon [icon]="faPhone" class="w-4 h-4 mr-3 text-gray-400"></fa-icon>
-            {{ user.phone }}
-          </p>
-        </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-lg font-semibold text-gray-900">{{ u.fullName }}</p>
+        <p class="text-sm text-gray-600">{{ u.email }}</p>
+        <p class="mt-1 text-xs text-gray-500">
+          {{ label(u.role) }}
+          @if (u.approvalStatus) { · {{ label(u.approvalStatus) }} }
+          · joined {{ u.createdAt | date: 'MMM y' }}
+        </p>
       </div>
     </div>
 
-    <!-- Right Column: Edit Form & Security -->
-    <div class="lg:col-span-2 space-y-6">
-      <!-- Edit Profile Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
-          <button (click)="toggleEditMode()" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-            <fa-icon [icon]="isEditing ? faTimes : faPencilAlt" class="mr-2"></fa-icon>
-            {{ isEditing ? 'Cancel' : 'Edit' }}
-          </button>
-        </div>
-        <div class="mt-4">
-          <form class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                <input type="text" [value]="user.name" [disabled]="!isEditing" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm disabled:bg-gray-100">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" [value]="user.email" disabled class="mt-1 w-full border-gray-300 rounded-lg shadow-sm disabled:bg-gray-100">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-                <input type="tel" [value]="user.phone" [disabled]="!isEditing" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm disabled:bg-gray-100">
-              </div>
-            </div>
-            <div *ngIf="isEditing" class="text-right">
-              <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Save Changes</button>
-            </div>
-          </form>
-        </div>
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate
+          class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+
+      <div class="mb-4">
+        <label for="fullName" class="mb-1.5 block text-sm font-semibold text-gray-800">Full name</label>
+        <input id="fullName" formControlName="fullName"
+               class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+               [class.border-red-500]="invalid('fullName')" [class.border-gray-300]="!invalid('fullName')">
+        @if (invalid('fullName')) { <p class="mt-1.5 text-xs text-red-700">{{ errorFor('fullName') }}</p> }
       </div>
 
-      <!-- Change Password Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-lg font-semibold text-gray-800">Change Password</h3>
-        <form class="mt-4 space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Current Password</label>
-            <input type="password" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">New Password</label>
-            <input type="password" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-            <input type="password" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm">
-          </div>
-          <div class="text-right">
-            <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Update Password</button>
-          </div>
-        </form>
+      <div class="mb-4">
+        <label for="phone" class="mb-1.5 block text-sm font-semibold text-gray-800">Mobile number</label>
+        <input id="phone" formControlName="phone"
+               class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+               [class.border-red-500]="invalid('phone')" [class.border-gray-300]="!invalid('phone')">
+        @if (invalid('phone')) { <p class="mt-1.5 text-xs text-red-700">{{ errorFor('phone') }}</p> }
+        <p class="mt-1.5 text-xs text-gray-500">
+          Used to contact you about your requests, and released to a volunteer only
+          once they accept one.
+        </p>
       </div>
-    </div>
-  </div>
+
+      <div class="mb-5">
+        <label for="district" class="mb-1.5 block text-sm font-semibold text-gray-800">District</label>
+        <select id="district" formControlName="district"
+                class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                [class.border-red-500]="invalid('district')" [class.border-gray-300]="!invalid('district')">
+          <option value="">— Select —</option>
+          @for (d of ref.districts(); track d) { <option [value]="d">{{ d }}</option> }
+        </select>
+        @if (invalid('district')) { <p class="mt-1.5 text-xs text-red-700">{{ errorFor('district') }}</p> }
+        <p class="mt-1.5 text-xs text-gray-500">Distances to volunteers and shelters are computed from this.</p>
+      </div>
+
+      <button type="submit" [disabled]="busy()"
+              class="rounded-lg bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white
+                     hover:bg-blue-900 disabled:opacity-50">
+        {{ busy() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </form>
+  }
 </div>

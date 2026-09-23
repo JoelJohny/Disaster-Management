@@ -1,82 +1,155 @@
-<!-- 
-  This is a professional page for an Admin to monitor all help requests.
-
-  Features:
-  - A comprehensive header with search, filtering by type/status, and date range options.
-  - A detailed, responsive table showing all key information for each request.
-  - Color-coded status and urgency badges for quick visual assessment.
-  - An "Assign" button for unassigned tasks and a "View" button for all others.
-  - Pagination to handle a large volume of requests.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-800">All Requests Monitoring</h1>
-    <p class="text-gray-500">A master list of every help request on the platform.</p>
+<div class="mb-5 flex flex-wrap items-start gap-3">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-xl font-semibold text-gray-900">All requests</h1>
+    <p class="mt-0.5 text-sm text-gray-600">Every request across the active relief operation.</p>
   </div>
+  <input [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search reference or name…"
+         class="w-56 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+</div>
 
-  <!-- Filter & Sort Controls -->
-  <div class="bg-white p-4 rounded-lg shadow-md space-y-4">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <input type="text" placeholder="Search by ID or user..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-      <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-        <option>All Request Types</option>
-        <option>Medical Assistance</option>
-        <option>Food & Water</option>
-        <option>Shelter / Housing</option>
-      </select>
-      <select class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-        <option>All Statuses</option>
-        <option>Submitted</option>
-        <option>In Progress</option>
-        <option>Completed</option>
-        <option>Cancelled</option>
-      </select>
-      <input type="date" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-    </div>
+<div class="mb-3 flex flex-wrap gap-2">
+  @for (f of filters; track f) {
+    <button type="button" (click)="setFilter(f)"
+            class="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold"
+            [class]="active() === f
+              ? 'border-blue-800 bg-blue-800 text-white'
+              : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'">
+      {{ label(f) }}
+      <span class="rounded-full px-1.5 text-[11px] tabular-nums"
+            [class]="active() === f ? 'bg-white/20' : 'bg-gray-100'">{{ countFor(f) }}</span>
+    </button>
+  }
+</div>
+
+<div class="mb-4 flex flex-wrap gap-2">
+  <select [value]="category()" (change)="setCategory($any($event.target).value)"
+          class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold">
+    <option value="">All categories</option>
+    @for (c of ref.categories(); track c.code) { <option [value]="c.code">{{ c.name }}</option> }
+  </select>
+  <select [value]="urgency()" (change)="setUrgency($any($event.target).value)"
+          class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold">
+    <option value="">All urgencies</option>
+    <option value="CRITICAL">Critical</option>
+    <option value="HIGH">High</option>
+    <option value="MEDIUM">Medium</option>
+    <option value="LOW">Low</option>
+  </select>
+</div>
+
+@if (store.loading() || store.error()) {
+  <app-state-panel [loading]="store.loading()" [error]="store.error()"
+                   [onRetry]="load.bind(this)" loadingText="Loading requests…" />
+} @else if (store.items().length === 0) {
+  <div class="rounded-xl border border-gray-200 bg-white">
+    <app-state-panel [empty]="true" emptyIcon="☰" emptyTitle="No requests match"
+                     emptyText="Try clearing a filter." />
   </div>
-
-  <!-- Requests Table -->
-  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+} @else {
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
-      <table class="w-full text-sm text-left text-gray-500">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3">Case ID</th>
-            <th scope="col" class="px-6 py-3">Submitted By</th>
-            <th scope="col" class="px-6 py-3">Request Type</th>
-            <th scope="col" class="px-6 py-3">Urgency</th>
-            <th scope="col" class="px-6 py-3">Status</th>
-            <th scope="col" class="px-6 py-3">Assigned To</th>
-            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 text-left">
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Reference</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Submitted by</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Type</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Urgency</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Status</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Assigned to</th>
+            <th class="px-4 py-3"></th>
           </tr>
         </thead>
         <tbody>
-          <!-- Loop through each request -->
-          <tr *ngFor="let request of requests" class="bg-white border-b hover:bg-gray-50">
-            <td class="px-6 py-4 font-medium text-gray-900">{{ request.id }}</td>
-            <td class="px-6 py-4">{{ request.submittedBy }}</td>
-            <td class="px-6 py-4">{{ request.type }}</td>
-            <td class="px-6 py-4">
-              <span class="font-semibold" [ngClass]="getUrgencyColor(request.urgency).textColor">{{ request.urgency }}</span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-xs font-medium px-2.5 py-0.5 rounded-full" [ngClass]="getStatusColor(request.status).bgColor + ' ' + getStatusColor(request.status).textColor">
-                {{ request.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4">{{ request.assignedTo || 'Unassigned' }}</td>
-            <td class="px-6 py-4 text-right">
-              <button *ngIf="!request.assignedTo" class="text-sm bg-green-500 text-white font-semibold py-1 px-3 rounded-lg hover:bg-green-600 transition-colors">
-                Assign
-              </button>
-              <button *ngIf="request.assignedTo" class="font-medium text-blue-600 hover:underline">
-                View
-              </button>
-            </td>
-          </tr>
+          @for (r of store.items(); track r.id) {
+            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+              <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ r.reference }}</td>
+              <td class="px-4 py-3 text-gray-900">{{ r.victim?.fullName ?? '—' }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ r.categoryName }}</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                      [class]="URGENCY_CLASS[r.urgency]">{{ label(r.urgency) }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                      [class]="STATUS_CLASS[r.status]">{{ label(r.status) }}</span>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ r.volunteer?.fullName ?? '—' }}</td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex justify-end gap-1.5">
+                  @if (r.status === 'SUBMITTED') {
+                    <button type="button" (click)="openAssign(r)"
+                            class="rounded-lg bg-blue-800 px-3 py-1.5 text-xs font-semibold text-white
+                                   hover:bg-blue-900">Assign</button>
+                  }
+                  <a [routerLink]="['/requests', r.id]"
+                     class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold
+                            hover:bg-gray-50">View</a>
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
+
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm">
+        <p class="text-gray-500">Page {{ store.page() }} of {{ totalPages }} · {{ store.total() }} requests</p>
+        <div class="flex gap-2">
+          <button type="button" (click)="goPage(store.page() - 1)" [disabled]="store.page() === 1"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold
+                         hover:bg-gray-50 disabled:opacity-40">Previous</button>
+          <button type="button" (click)="goPage(store.page() + 1)" [disabled]="store.page() >= totalPages"
+                  class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold
+                         hover:bg-gray-50 disabled:opacity-40">Next</button>
+        </div>
+      </div>
+    }
   </div>
-</div>
+}
+
+<!-- assign dialog -->
+@if (assigning(); as req) {
+  <div class="fixed inset-0 z-[70] grid place-items-center bg-black/50 p-5"
+       (click)="$event.target === $event.currentTarget && assigning.set(null)">
+    <div class="w-full max-w-md rounded-xl bg-white shadow-xl" role="dialog" aria-modal="true">
+      <div class="border-b border-gray-200 px-5 py-4">
+        <h3 class="text-base font-semibold text-gray-900">Assign {{ req.reference }}</h3>
+        <p class="mt-0.5 text-sm text-gray-600">{{ req.categoryName }} · {{ req.locationText }}</p>
+      </div>
+      <div class="max-h-80 overflow-y-auto px-5 py-4">
+        @for (v of volunteers(); track v.id) {
+          <label class="mb-2 flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3"
+                 [class]="chosenVolunteer === v.id ? 'border-blue-700 bg-blue-50' : 'border-gray-200'">
+            <input type="radio" name="vol" [value]="v.id" [(ngModel)]="chosenVolunteer" class="sr-only">
+            <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-800">
+              {{ v.fullName.charAt(0) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold text-gray-900">{{ v.fullName }}</p>
+              <p class="text-xs text-gray-500">
+                {{ v.district }} · {{ v.completedCount }} completed
+                @if (v.ratingAvg) { · ★ {{ v.ratingAvg }} }
+                · {{ v.activeTasks }} active
+              </p>
+            </div>
+          </label>
+        } @empty {
+          <p class="py-8 text-center text-sm text-gray-500">No approved volunteers available.</p>
+        }
+      </div>
+      <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-3">
+        <button type="button" (click)="assigning.set(null)"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmAssign()" [disabled]="!chosenVolunteer || assignBusy()"
+                class="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white
+                       hover:bg-blue-900 disabled:opacity-50">
+          {{ assignBusy() ? 'Assigning…' : 'Assign volunteer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

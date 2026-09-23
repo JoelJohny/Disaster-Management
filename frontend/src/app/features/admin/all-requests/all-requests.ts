@@ -1,70 +1,119 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { Api, type ApiError } from '../../../core/services/api';
+import { RequestsStore, type RequestItem } from '../../../core/services/requests.store';
+import { ReferenceStore } from '../../../core/services/reference.store';
+import { ToastService } from '../../../core/services/toast';
+import { StatePanel } from '../../../shared/state-panel';
+import { STATUS_CLASS, URGENCY_CLASS, label, when } from '../../../shared/ui';
 
-interface HelpRequest {
-  id: string;
-  submittedBy: string;
-  type: string;
-  urgency: 'High' | 'Medium' | 'Low';
-  status: 'Submitted' | 'In Progress' | 'Completed' | 'Cancelled';
-  assignedTo?: string; // Optional: name of the assigned volunteer
+interface VolunteerOption {
+  id: number; fullName: string; district: string;
+  completedCount: number; ratingAvg: number | null; activeTasks: number;
 }
+
+const FILTERS = ['ALL', 'SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const;
+type Filter = (typeof FILTERS)[number];
 
 @Component({
   selector: 'app-all-requests',
-  imports: [CommonModule,
-    FontAwesomeModule,
-    NgClass],
+  imports: [FormsModule, RouterLink, StatePanel],
   templateUrl: './all-requests.html',
-  styleUrl: './all-requests.scss'
+  styleUrl: './all-requests.scss',
 })
-export class AllRequests implements OnInit {
+export class AllRequests {
+  readonly store = inject(RequestsStore);
+  readonly ref = inject(ReferenceStore);
+  private api = inject(Api);
+  private toast = inject(ToastService);
 
-  // Mock data for the requests table
-  requests: HelpRequest[] = [];
+  readonly filters = FILTERS;
+  readonly active = signal<Filter>('ALL');
+  readonly category = signal('');
+  readonly urgency = signal('');
+  search = '';
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() { }
+  // assign dialog
+  readonly assigning = signal<RequestItem | null>(null);
+  readonly volunteers = signal<VolunteerOption[]>([]);
+  readonly assignBusy = signal(false);
+  chosenVolunteer: number | null = null;
 
-  ngOnInit(): void {
-    this.requests = this.getMockRequests();
+  readonly STATUS_CLASS = STATUS_CLASS;
+  readonly URGENCY_CLASS = URGENCY_CLASS;
+  readonly label = label;
+  readonly when = when;
+
+  constructor() { this.ref.load(); this.load(); }
+
+  load(): void {
+    const f = this.active();
+    this.store.load('all', {
+      status: f === 'ALL' ? undefined : f,
+      categoryCode: this.category() || undefined,
+      urgency: this.urgency() || undefined,
+      q: this.search || undefined,
+      pageSize: 25,
+    });
   }
 
-  /**
-   * Returns Tailwind CSS text color classes for a given urgency level.
-   */
-  getUrgencyColor(urgency: 'High' | 'Medium' | 'Low'): { textColor: string } {
-    switch (urgency) {
-      case 'High': return { textColor: 'text-red-600' };
-      case 'Medium': return { textColor: 'text-yellow-600' };
-      case 'Low': return { textColor: 'text-green-600' };
-      default: return { textColor: 'text-gray-600' };
+  setFilter(f: Filter): void { this.active.set(f); this.store.page.set(1); this.load(); }
+  setCategory(c: string): void { this.category.set(c); this.load(); }
+  setUrgency(u: string): void { this.urgency.set(u); this.load(); }
+
+  onSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(), 350);
+  }
+
+  countFor(f: Filter): number {
+    return f === 'ALL' ? this.store.total() : (this.store.counts()[f] ?? 0);
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.store.total() / this.store.pageSize()));
+  }
+
+  goPage(p: number): void {
+    if (p < 1 || p > this.totalPages) return;
+    this.store.page.set(p);
+    this.load();
+  }
+
+  async openAssign(r: RequestItem): Promise<void> {
+    this.assigning.set(r);
+    this.chosenVolunteer = null;
+    try {
+      const v = await firstValueFrom(this.api.get<any>('/volunteers'));
+      this.volunteers.set(v.items ?? []);
+    } catch {
+      this.volunteers.set([]);
     }
   }
 
   /**
-   * Returns Tailwind CSS background and text color classes for a given status.
+   * The admin assign path calls the SAME claim service a volunteer uses, so it
+   * is protected by the same unique index. There is no second, weaker route
+   * into an assignment.
    */
-  getStatusColor(status: 'Submitted' | 'In Progress' | 'Completed' | 'Cancelled'): { bgColor: string, textColor: string } {
-    switch (status) {
-      case 'Submitted': return { bgColor: 'bg-blue-100', textColor: 'text-blue-800' };
-      case 'In Progress': return { bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' };
-      case 'Completed': return { bgColor: 'bg-green-100', textColor: 'text-green-800' };
-      case 'Cancelled': return { bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
-      default: return { bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
+  async confirmAssign(): Promise<void> {
+    const r = this.assigning();
+    if (!r || !this.chosenVolunteer) return;
+    this.assignBusy.set(true);
+    try {
+      await firstValueFrom(
+        this.api.post(`/requests/${r.id}/assign`, { volunteerId: this.chosenVolunteer }),
+      );
+      this.toast.success('Volunteer assigned', r.reference);
+      this.assigning.set(null);
+      this.load();
+    } catch (e) {
+      this.toast.error('Could not assign', (e as ApiError).message);
+    } finally {
+      this.assignBusy.set(false);
     }
-  }
-
-  /**
-   * Generates a list of mock requests.
-   */
-  private getMockRequests(): HelpRequest[] {
-    return [
-      { id: 'REQ-001', submittedBy: 'Jane Doe', type: 'Medical Assistance', urgency: 'High', status: 'In Progress', assignedTo: 'David Lee' },
-      { id: 'REQ-002', submittedBy: 'John Smith', type: 'Food & Water', urgency: 'Medium', status: 'Completed', assignedTo: 'Emily White' },
-      { id: 'REQ-003', submittedBy: 'Maria Garcia', type: 'Shelter / Housing', urgency: 'Medium', status: 'Submitted' },
-      { id: 'REQ-004', submittedBy: 'Chen Wei', type: 'Rescue / Evacuation', urgency: 'High', status: 'Cancelled' },
-      { id: 'REQ-005', submittedBy: 'Fatima Al-Sayed', type: 'Medical Assistance', urgency: 'High', status: 'Submitted' },
-    ];
   }
 }

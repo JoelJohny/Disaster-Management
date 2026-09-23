@@ -1,64 +1,170 @@
-<!-- 
-  This is a professional page for an Admin to manage disaster events.
-
-  Features:
-  - A clear header with a prominent "Create New Event" button.
-  - A responsive table displaying key event details like name, location, status, and dates.
-  - Color-coded status badges for quick identification of active, upcoming, or past events.
-  - Action buttons for editing or viewing the details of each event.
--->
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-800">Disaster Event Management</h1>
-      <p class="text-gray-500">Define and manage disaster events to organize relief efforts.</p>
-    </div>
-    <div class="mt-4 md:mt-0">
-      <button class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-        <fa-icon [icon]="faPlusCircle" class="mr-2"></fa-icon>
-        Create New Event
-      </button>
-    </div>
+<div class="mb-5 flex flex-wrap items-start gap-3">
+  <div class="min-w-0 flex-1">
+    <h1 class="text-xl font-semibold text-gray-900">Disaster events</h1>
+    <p class="mt-0.5 text-sm text-gray-600">
+      A new request is automatically attached to whichever active event covers its location.
+    </p>
   </div>
+  <button type="button" (click)="openCreate()"
+          class="rounded-lg bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-900">
+    ✚ New event
+  </button>
+</div>
 
-  <!-- Events Table -->
-  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+@if (loading() || error()) {
+  <app-state-panel [loading]="loading()" [error]="error()" [onRetry]="load.bind(this)"
+                   loadingText="Loading events…" />
+} @else {
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
-      <table class="w-full text-sm text-left text-gray-500">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th scope="col" class="px-6 py-3">Event Name</th>
-            <th scope="col" class="px-6 py-3">Location</th>
-            <th scope="col" class="px-6 py-3">Status</th>
-            <th scope="col" class="px-6 py-3">Start Date</th>
-            <th scope="col" class="px-6 py-3">End Date</th>
-            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 text-left">
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Event</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">District</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Severity</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Period</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">Requests</th>
+            <th class="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">State</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Loop through each event -->
-          <tr *ngFor="let event of disasterEvents" class="bg-white border-b hover:bg-gray-50">
-            <td class="px-6 py-4 font-medium text-gray-900">{{ event.name }}</td>
-            <td class="px-6 py-4">{{ event.location }}</td>
-            <td class="px-6 py-4">
-              <span class="text-xs font-medium px-2.5 py-0.5 rounded-full" [ngClass]="getStatusColor(event.status).bgColor + ' ' + getStatusColor(event.status).textColor">
-                {{ event.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4">{{ event.startDate }}</td>
-            <td class="px-6 py-4">{{ event.endDate || 'Ongoing' }}</td>
-            <td class="px-6 py-4 text-right">
-              <button class="p-2 text-gray-500 hover:text-blue-600" title="Edit Event">
-                <fa-icon [icon]="faPencilAlt"></fa-icon>
-              </button>
-              <button class="p-2 text-gray-500 hover:text-gray-800" title="View Details">
-                <fa-icon [icon]="faEye"></fa-icon>
-              </button>
-            </td>
-          </tr>
+          @for (d of items(); track d.id) {
+            <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <p class="font-medium text-gray-900">{{ d.title }}</p>
+                <p class="text-xs text-gray-500">{{ d.type }}</p>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ d.district }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ label(d.severity) }}</td>
+              <td class="px-4 py-3 text-gray-600">
+                {{ d.startDate | date: 'd MMM y' }} —
+                {{ d.endDate ? (d.endDate | date: 'd MMM y') : 'ongoing' }}
+              </td>
+              <td class="px-4 py-3 tabular-nums text-gray-600">{{ d.requestCount ?? 0 }}</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                      [class]="STATUS_CLASS[d.state]">{{ label(d.state) }}</span>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="px-4 py-10 text-center text-sm text-gray-500">No events yet.</td></tr>
+          }
         </tbody>
       </table>
     </div>
   </div>
-</div>
+
+  <div class="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-xs text-gray-500">
+    <strong>State is derived, never stored.</strong> Upcoming, active and past are
+    calculated from the dates every time this is queried, so a stored value can
+    never contradict them — which is exactly the defect the original mock data had,
+    where an event dated in the past was marked as upcoming.
+  </div>
+}
+
+<!-- create dialog -->
+@if (creating()) {
+  <div class="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-black/50 p-5"
+       (click)="$event.target === $event.currentTarget && creating.set(false)">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate
+          class="w-full max-w-lg rounded-xl bg-white shadow-xl">
+      <div class="border-b border-gray-200 px-5 py-4">
+        <h3 class="text-base font-semibold text-gray-900">New disaster event</h3>
+      </div>
+
+      <div class="max-h-[70vh] overflow-y-auto px-5 py-4">
+        <div class="mb-4">
+          <label for="title" class="mb-1.5 block text-sm font-semibold text-gray-800">Event name</label>
+          <input id="title" formControlName="title"
+                 class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                 [class.border-red-500]="invalid('title')" [class.border-gray-300]="!invalid('title')"
+                 placeholder="e.g. Cyclone Ditwah 2026">
+          @if (invalid('title')) { <p class="mt-1.5 text-xs text-red-700">Enter an event name</p> }
+        </div>
+
+        <div class="mb-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="type" class="mb-1.5 block text-sm font-semibold text-gray-800">Type</label>
+            <select id="type" formControlName="type"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+              <option>Flood</option><option>Cyclone</option><option>Landslide</option>
+              <option>Earthquake</option><option>Preparedness</option><option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="severity" class="mb-1.5 block text-sm font-semibold text-gray-800">Severity</label>
+            <select id="severity" formControlName="severity"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="LOW">Low</option><option value="MODERATE">Moderate</option>
+              <option value="HIGH">High</option><option value="SEVERE">Severe</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="district" class="mb-1.5 block text-sm font-semibold text-gray-800">District</label>
+            <select id="district" formControlName="district"
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                    [class.border-red-500]="invalid('district')" [class.border-gray-300]="!invalid('district')">
+              <option value="">— Select —</option>
+              @for (d of ref.districts(); track d) { <option [value]="d">{{ d }}</option> }
+            </select>
+            @if (invalid('district')) { <p class="mt-1.5 text-xs text-red-700">Select a district</p> }
+          </div>
+          <div>
+            <label for="radiusKm" class="mb-1.5 block text-sm font-semibold text-gray-800">
+              Radius (km)
+            </label>
+            <input id="radiusKm" type="number" min="1" max="200" formControlName="radiusKm"
+                   class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+          </div>
+        </div>
+
+        <div class="mb-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="startDate" class="mb-1.5 block text-sm font-semibold text-gray-800">Start date</label>
+            <input id="startDate" type="date" formControlName="startDate"
+                   class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"
+                   [class.border-red-500]="invalid('startDate')" [class.border-gray-300]="!invalid('startDate')">
+            @if (invalid('startDate')) { <p class="mt-1.5 text-xs text-red-700">Choose a start date</p> }
+          </div>
+          <div>
+            <label for="endDate" class="mb-1.5 block text-sm font-semibold text-gray-800">
+              End date <span class="font-normal text-gray-500">blank if ongoing</span>
+            </label>
+            <input id="endDate" type="date" formControlName="endDate"
+                   class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="helplineNumber" class="mb-1.5 block text-sm font-semibold text-gray-800">Helpline</label>
+          <input id="helplineNumber" formControlName="helplineNumber"
+                 class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+        </div>
+
+        <div>
+          <label for="description" class="mb-1.5 block text-sm font-semibold text-gray-800">
+            Description <span class="font-normal text-gray-500">optional</span>
+          </label>
+          <textarea id="description" rows="3" formControlName="description" maxlength="500"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-600"></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-3">
+        <button type="button" (click)="creating.set(false)"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="submit" [disabled]="busy()"
+                class="rounded-lg bg-blue-800 px-4 py-2 text-sm font-semibold text-white
+                       hover:bg-blue-900 disabled:opacity-50">
+          {{ busy() ? 'Creating…' : 'Create event' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

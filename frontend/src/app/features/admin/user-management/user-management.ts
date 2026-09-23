@@ -1,67 +1,107 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { 
-  faSearch, 
-  faUserPlus, 
-  faPencilAlt, 
-  faTrashAlt 
-} from '@fortawesome/free-solid-svg-icons';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { Api, type ApiError } from '../../../core/services/api';
+import { AuthStore } from '../../../core/services/auth.store';
+import { ToastService } from '../../../core/services/toast';
+import { StatePanel } from '../../../shared/state-panel';
+import { STATUS_CLASS, label, when } from '../../../shared/ui';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'Admin' | 'Volunteer' | 'Victim';
-  status: 'Active' | 'Inactive';
-  dateJoined: string;
-  avatar: string;
+interface AdminUser {
+  id: number; fullName: string; email: string; phone: string; role: string;
+  district: string; isActive: boolean;
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  completedCount: number | null; ratingAvg: number | null; createdAt: string;
 }
+
 @Component({
   selector: 'app-user-management',
-  imports: [CommonModule,
-    FontAwesomeModule,
-    NgClass],
+  imports: [FormsModule, StatePanel],
   templateUrl: './user-management.html',
-  styleUrl: './user-management.scss'
+  styleUrl: './user-management.scss',
 })
 export class UserManagement {
- // Icon definitions
-  faSearch = faSearch;
-  faUserPlus = faUserPlus;
-  faPencilAlt = faPencilAlt;
-  faTrashAlt = faTrashAlt;
+  private api = inject(Api);
+  private toast = inject(ToastService);
+  readonly auth = inject(AuthStore);
 
-  // Mock data for the users table
-  users: User[] = [];
+  readonly users = signal<AdminUser[]>([]);
+  readonly pending = signal<AdminUser[]>([]);
+  readonly counts = signal<Record<string, number>>({});
+  readonly total = signal(0);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly busy = signal<number | null>(null);
 
-  constructor() { }
+  readonly roleFilter = signal('');
+  search = '';
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
-  ngOnInit(): void {
-    this.users = this.getMockUsers();
-  }
+  readonly STATUS_CLASS = STATUS_CLASS;
+  readonly label = label;
+  readonly when = when;
 
-  /**
-   * Returns Tailwind CSS classes for a given user role.
-   */
-  getRoleColor(role: 'Admin' | 'Volunteer' | 'Victim'): { bgColor: string, textColor: string } {
-    switch (role) {
-      case 'Admin': return { bgColor: 'bg-gray-200', textColor: 'text-gray-800' };
-      case 'Volunteer': return { bgColor: 'bg-green-100', textColor: 'text-green-800' };
-      case 'Victim': return { bgColor: 'bg-red-100', textColor: 'text-red-800' };
-      default: return { bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
+  constructor() { this.load(); }
+
+  async load(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      const [all, pend] = await Promise.all([
+        firstValueFrom(this.api.get<any>('/users', {
+          role: this.roleFilter() || undefined,
+          q: this.search || undefined,
+          pageSize: 50,
+        })),
+        firstValueFrom(this.api.get<any>('/users', { approvalStatus: 'PENDING', pageSize: 20 })),
+      ]);
+      this.users.set(all.items ?? []);
+      this.total.set(all.total ?? 0);
+      this.counts.set(all.counts ?? {});
+      this.pending.set(pend.items ?? []);
+    } catch (e) {
+      this.error.set((e as ApiError).message ?? 'Could not load users.');
+    } finally {
+      this.loading.set(false);
     }
   }
 
-  /**
-   * Generates a list of mock users.
-   */
-  private getMockUsers(): User[] {
-    return [
-      { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'Admin', status: 'Active', dateJoined: 'Jan 15, 2024', avatar: 'https://placehold.co/40x40/95a5a6/ffffff?text=A' },
-      { id: 2, name: 'David Lee', email: 'david.lee@example.com', role: 'Volunteer', status: 'Active', dateJoined: 'Mar 02, 2024', avatar: 'https://placehold.co/40x40/3498db/ffffff?text=DL' },
-      { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', role: 'Victim', status: 'Active', dateJoined: 'Aug 10, 2025', avatar: 'https://placehold.co/40x40/e74c3c/ffffff?text=JD' },
-      { id: 4, name: 'Emily White', email: 'emily.white@example.com', role: 'Volunteer', status: 'Inactive', dateJoined: 'Feb 20, 2024', avatar: 'https://placehold.co/40x40/2ecc71/ffffff?text=EW' },
-    ];
+  /** Debounced so a search does not fire a request on every keystroke. */
+  onSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.load(), 350);
+  }
+
+  setRole(r: string): void { this.roleFilter.set(r); this.load(); }
+
+  async decide(u: AdminUser, decision: 'APPROVE' | 'REJECT'): Promise<void> {
+    this.busy.set(u.id);
+    try {
+      await firstValueFrom(this.api.post(`/users/${u.id}/volunteer-approval`, { decision }));
+      this.toast.success(
+        decision === 'APPROVE' ? 'Volunteer approved' : 'Application rejected',
+        decision === 'APPROVE' ? `${u.fullName} can now accept requests.` : u.fullName,
+      );
+      this.load();
+    } catch (e) {
+      this.toast.error('Could not update', (e as ApiError).message);
+    } finally {
+      this.busy.set(null);
+    }
+  }
+
+  async setActive(u: AdminUser, isActive: boolean): Promise<void> {
+    this.busy.set(u.id);
+    try {
+      await firstValueFrom(this.api.post(`/users/${u.id}/active`, { isActive }));
+      this.toast.success(isActive ? 'Account activated' : 'Account deactivated', u.fullName);
+      this.load();
+    } catch (e) {
+      const err = e as ApiError;
+      // SELF_DEACTIVATE and LAST_ADMIN are the two guardrails.
+      this.toast.error('Blocked', err.message);
+    } finally {
+      this.busy.set(null);
+    }
   }
 }
