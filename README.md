@@ -139,6 +139,7 @@ docs/               design documents (see below)
 | Document | What it covers |
 |---|---|
 | [docs/SCREENS.md](docs/SCREENS.md) | Every screen in the running app, with screenshots |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Deploying to Railway: Docker image, database setup, verification |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Cold start, daily start, reset, and what to do when something breaks |
 | [docs/API.md](docs/API.md) | All 28 endpoints, auth flow, error model |
 | [docs/DATABASE.md](docs/DATABASE.md) | The 13 tables, the atomic-claim guarantee, MySQL-specific decisions |

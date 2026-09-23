@@ -1,0 +1,15 @@
+# Build context hygiene: without this, node_modules and the local Angular
+# cache are uploaded to the daemon on every build.
+node_modules
+**/node_modules
+dist
+**/dist
+.angular
+.git
+.env
+.env.*
+!.env.example
+project file
+docs/screenshots
+*.log
+coverage
