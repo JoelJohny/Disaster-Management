@@ -1,12 +1,18 @@
 {
-    "compilerOptions": {
-        "module": "CommonJS",
-        "moduleResolution": "node",
-        "strict": true,
-        "outDir": "./built",
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "esModuleInterop": true
-    },
-    "include": ["src/**/*"],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "outDir": "dist",
+    "rootDir": "..",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "declaration": false
+  },
+  "include": ["src/**/*.ts", "../packages/contracts/src/**/*.ts"]
 }
